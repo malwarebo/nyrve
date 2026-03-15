@@ -1,0 +1,17 @@
+Package: @@NAME@@
+Version: @@VERSION@@
+Section: devel
+Depends: @@DEPENDS@@
+Recommends: @@RECOMMENDS@@
+Priority: optional
+Architecture: @@ARCHITECTURE@@
+Maintainer: Forge contributors <forge@malwarebo.com>
+Homepage: https://github.com/malwarebo/forge
+Installed-Size: @@INSTALLEDSIZE@@
+Provides: @@NAME@@
+Conflicts: @@NAME@@
+Replaces: @@NAME@@
+Description: AI-native code editor.
+ Forge is an AI-native code editor with Claude deeply integrated into every
+ layer. Autonomous multi-file edits, background monitoring, and persistent
+ project memory. See https://github.com/malwarebo/forge for details.
