@@ -20,7 +20,7 @@
     <ellipse cx="0" cy="45" rx="20" ry="22" fill="#FAEEDA" opacity="0.4"/>
   </g>
 
-  <!-- FORGE wordmark -->
+  <!-- NYRVE wordmark -->
   <text
     x="140"
     y="118"
@@ -29,7 +29,7 @@
     font-weight="600"
     letter-spacing="6"
     fill="#D85A30"
-  >FORGE</text>
+  >NYRVE</text>
 
   <!-- Tagline -->
   <text

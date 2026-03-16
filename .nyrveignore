@@ -1,4 +1,4 @@
-# Forge indexer exclusions — files and directories to skip during indexing.
+# Nyrve indexer exclusions — files and directories to skip during indexing.
 # Syntax follows .gitignore conventions.
 
 # Dependencies
@@ -66,7 +66,7 @@ coverage/
 *.pem
 *.key
 
-# Forge runtime data (indexed separately)
-.forge/index.db
-.forge/memory.db
-.forge/tasks.db
+# Nyrve runtime data (indexed separately)
+.nyrve/index.db
+.nyrve/memory.db
+.nyrve/tasks.db
