@@ -202,9 +202,11 @@ export class NyrveGitHubService extends Disposable implements INyrveGitHubServic
 
 	async getWorkflowRuns(owner: string, repo: string, branch?: string): Promise<GitHubWorkflowRun[]> {
 		const branchParam = branch ? `&branch=${encodeURIComponent(branch)}` : '';
-		const data = await this.apiRequest<{ workflow_runs: Array<{
-			id: number; name: string; status: string; conclusion: string | null; html_url: string;
-		}> }>('GET', `/repos/${owner}/${repo}/actions/runs?per_page=10${branchParam}`);
+		const data = await this.apiRequest<{
+			workflow_runs: Array<{
+				id: number; name: string; status: string; conclusion: string | null; html_url: string;
+			}>;
+		}>('GET', `/repos/${owner}/${repo}/actions/runs?per_page=10${branchParam}`);
 
 		return data.workflow_runs.map(run => ({
 			id: run.id,

@@ -44,7 +44,7 @@ export class NyrvePatternDetector {
 		private readonly modelRouter: INyrveModelRouter,
 		private readonly indexManager: INyrveIndexManager,
 		private readonly logService: ILogService,
-	) {}
+	) { }
 
 	async detect(): Promise<PatternDetectionResult> {
 		this.logService.info('[Nyrve] Pattern detector: sampling files for pattern analysis...');

@@ -29,8 +29,7 @@
 import { Disposable } from '../../vs/base/common/lifecycle.js';
 import { ILogService } from '../../vs/platform/log/common/log.js';
 import { registerWorkbenchContribution2, WorkbenchPhase } from '../../vs/workbench/common/contributions.js';
-import { ICommandService } from '../../vs/platform/commands/common/commands.js';
-import { CommandsRegistry } from '../../vs/platform/commands/common/commands.js';
+import { ICommandService, CommandsRegistry } from '../../vs/platform/commands/common/commands.js';
 import { MenuRegistry } from '../../vs/platform/actions/common/actions.js';
 import { Registry } from '../../vs/platform/registry/common/platform.js';
 import { Extensions as ViewExtensions, IViewContainersRegistry, IViewDescriptor, IViewsRegistry } from '../../vs/workbench/common/views.js';

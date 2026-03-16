@@ -1,319 +1,1559 @@
 {
 	"$schema": "https://raw.githubusercontent.com/microsoft/vscode-github-triage-actions/stable/classifier-deep/apply/apply-labels/deep-classifier-config.schema.json",
 	"vacation": [],
-	"assignees": {
-		"nameToOverrideAccuracyOf": {"accuracy": 0.8}
-	},
+	"assignees": {},
 	"labels": {
-		"accessibility": { "assign": ["meganrogge"]},
-		"api": {"assign": ["jrieken"]},
-		"api-finalization": {"assign": []},
-		"api-proposal": {"assign": ["jrieken"]},
-		"authentication": {"assign": ["TylerLeonhardt"]},
-		"bisect-ext": {"assign": ["jrieken"]},
-		"bot-proposal": {"assign": ["lramos15"]},
-		"bracket-pair-colorization": {"assign": ["hediet"]},
-		"bracket-pair-guides": {"assign": ["hediet"]},
-		"breadcrumbs": {"assign": ["jrieken"]},
-		"callhierarchy": {"assign": ["jrieken"]},
-		"chat-terminal": {"assign": ["Tyriar"]},
-		"chat-terminal-output-monitor": {"assign": ["meganrogge"]},
-		"chrome-devtools": {"assign": ["deepak1556"]},
-		"cloud-changes": {"assign": ["joyceerhl"]},
-		"code-cli": {"assign": ["connor4312"]},
-		"code-lens": {"assign": ["jrieken"]},
-		"code-server-web": {"assign": ["aeschli"]},
-		"command-center": {"assign": ["jrieken"]},
-		"comments": {"assign": ["alexr00"]},
-		"config": {"assign": ["sandy081"]},
-		"containers": {"assign": ["chrmarti"]},
-		"context-keys": {"assign": ["ulugbekna"]},
-		"continue-working-on": {"assign": ["joyceerhl"]},
-		"css-less-scss": {"assign": ["aeschli"]},
-		"custom-editors": {"assign": ["mjbvz"]},
-		"debug": {"assign": ["roblourens"]},
-		"debug-disassembly": {"assign": []},
-		"dialogs": {"assign": ["sbatten"]},
-		"diff-editor": {"assign": ["hediet"]},
-		"dropdown": {"assign": ["lramos15"]},
-		"editor-api": {"assign": ["alexdima"]},
-		"editor-autoclosing": {"assign": ["alexdima"]},
-		"editor-autoindent": {"assign": ["rebornix"]},
-		"editor-bracket-matching": {"assign": ["hediet"]},
-		"editor-clipboard": {"assign": ["alexdima", "rebornix"]},
-		"editor-code-actions": {"assign": ["mjbvz", "justschen"]},
-		"editor-color-picker": {"assign": ["aiday-mar"]},
-		"editor-columnselect": {"assign": ["alexdima"]},
-		"editor-commands": {"assign": ["alexdima"]},
-		"editor-comments": {"assign": ["alexdima"]},
-		"editor-contrib": {"assign": ["alexdima"]},
-		"editor-core": {"assign": ["alexdima"]},
-		"editor-drag-and-drop": {"assign": ["rebornix"]},
-		"editor-error-widget": {"assign": ["sandy081"]},
-		"editor-find": {"assign": ["rebornix"]},
-		"editor-folding": {"assign": ["aeschli"]},
-		"editor-highlight": {"assign": ["alexdima"]},
-		"editor-hover": {"assign": ["aiday-mar"]},
-		"editor-indent-detection": {"assign": ["alexdima"]},
-		"editor-indent-guides": {"assign": ["hediet"]},
-		"editor-input": {"assign": ["aiday-mar"]},
-		"editor-input-IME": {"assign": ["aiday-mar"]},
-		"editor-insets": {"assign": ["jrieken"]},
-		"editor-minimap": {"assign": ["alexdima"]},
-		"editor-multicursor": {"assign": ["alexdima"]},
-		"editor-parameter-hints": {"assign": ["mjbvz"]},
-		"editor-render-whitespace": {"assign": ["alexdima"]},
-		"editor-rendering": {"assign": ["alexdima"]},
-		"editor-RTL": {"assign": ["alexdima"]},
-		"editor-scrollbar": {"assign": ["alexdima"]},
-		"editor-sorting": {"assign": ["alexdima"]},
-		"editor-sticky-scroll": {"assign": ["aiday-mar"]},
-		"editor-symbols": {"assign": ["jrieken"]},
-		"editor-synced-region": {"assign": ["aeschli"]},
-		"editor-textbuffer": {"assign": ["alexdima", "rebornix"]},
-		"editor-theming": {"assign": ["alexdima"]},
-		"editor-wordnav": {"assign": ["alexdima"]},
-		"editor-wrapping": {"assign": ["alexdima"]},
-		"emmet": {"assign": ["rzhao271"]},
-		"emmet-parse": {"assign": ["rzhao271"]},
-		"error-list": {"assign": ["sandy081"]},
-		"extension-activation": {"assign": ["alexdima"]},
-		"extension-host": {"assign": ["alexdima"]},
-		"extension-prerelease": {"assign": ["sandy081"]},
-		"extension-recommendations": {"assign": ["sandy081"]},
-		"extensions": {"assign": ["sandy081"]},
-		"extensions-development": {"assign": []},
-		"file-decorations": {"assign": ["jrieken"]},
-		"file-encoding": {"assign": ["bpasero"]},
-		"file-explorer": {"assign": ["lramos15"]},
-		"file-glob": {"assign": ["bpasero"]},
-		"file-io": {"assign": ["bpasero"]},
-		"file-nesting": {"assign": ["lramos15"]},
-		"file-watcher": {"assign": ["bpasero"]},
-		"font-rendering": {"assign": ["rzhao271"]},
-		"formatting": {"assign": ["jrieken"]},
-		"getting-started": {"assign": ["bhavyaus"]},
-		"ghost-text": {"assign": ["hediet"]},
-		"git": {"assign": ["lszomoru"]},
-		"github": {"assign": ["lszomoru"]},
-		"github-authentication": {"assign": ["TylerLeonhardt"]},
-		"github-repositories": {"assign": ["lszomoru"]},
-		"gpu": {"assign": ["deepak1556"]},
-		"grammar": {"assign": ["mjbvz"]},
-		"grid-widget": {"assign": ["joaomoreno"]},
-		"html": {"assign": ["aeschli"]},
-		"icon-brand": {"assign": ["daviddossett"]},
-		"icons-product": {"assign": ["daviddossett"]},
-		"image-preview": {"assign": ["mjbvz"]},
-		"inlay-hints": {"assign": ["jrieken", "hediet"]},
-		"inline-completions": {"assign": ["hediet"]},
-		"install-update": {"assign": ["joaomoreno"], "accuracy": 0.85},
-		"intellisense-config": {"assign": ["rzhao271"]},
-		"interactive-playground": {"assign": ["chrmarti"]},
-		"interactive-window": {"assign": ["amunger", "rebornix"]},
-		"ipc": {"assign": ["joaomoreno"]},
-		"issue-bot": {"assign": ["chrmarti"]},
-		"issue-reporter": {"assign": ["yoyokrazy"]},
-		"javascript": {"assign": ["mjbvz"]},
-		"json": {"assign": ["aeschli"]},
-		"json-sorting": {"assign": ["aiday-mar"]},
-		"keybindings": {"assign": ["ulugbekna"]},
-		"keybindings-editor": {"assign": ["ulugbekna"]},
-		"keyboard-layout": {"assign": ["ulugbekna"]},
-		"L10N": {"assign": ["TylerLeonhardt", "csigs"]},
-		"l10n-platform": {"assign": ["TylerLeonhardt"]},
-		"label-provider": {"assign": ["lramos15"]},
-		"languages-basic": {"assign": ["aeschli"]},
-		"languages-diagnostics": {"assign": ["jrieken"]},
-		"languages-guessing": {"assign": ["TylerLeonhardt"]},
-		"layout": {"assign": ["benibenj"]},
-		"lcd-text-rendering": {"assign": []},
-		"list-widget": {"assign": ["joaomoreno"]},
-		"live-preview": {"assign": []},
-		"log": {"assign": ["sandy081"]},
-		"markdown": {"assign": ["mjbvz"]},
-		"marketplace": {"assign": ["isidorn"]},
-		"menus": {"assign": ["sbatten"]},
-		"merge-conflict": {"assign": ["chrmarti"]},
-		"merge-editor": {"assign": ["hediet"]},
-		"merge-editor-workbench": {"assign": ["jrieken"]},
-		"monaco-editor": {"assign": []},
-		"native-file-dialog": {"assign": ["deepak1556"]},
-		"network": {"assign": ["deepak1556"]},
-		"notebook": {"assign": ["rebornix"]},
-		"notebook-api": {"assign": []},
-		"notebook-builtin-renderers": {"assign": []},
-		"notebook-cell-editor": {"assign": []},
-		"notebook-celltoolbar": {"assign": []},
-		"notebook-clipboard": {"assign": []},
-		"notebook-commenting": {"assign": []},
-		"notebook-debugging": {"assign": []},
-		"notebook-diff": {"assign": []},
-		"notebook-dnd": {"assign": []},
-		"notebook-execution": {"assign": []},
-		"notebook-find": {"assign": []},
-		"notebook-folding": {"assign": []},
-		"notebook-getting-started": {"assign": []},
-		"notebook-getting-globaltoolbar": {"assign": []},
-		"notebook-ipynb": {"assign": []},
-		"notebook-kernel": {"assign": []},
-		"notebook-kernel-picker": {"assign": []},
-		"notebook-keybinding": {"assign": []},
-		"notebook-language": {"assign": []},
-		"notebook-layout": {"assign": []},
-		"notebook-markdown": {"assign": []},
-		"notebook-math": {"assign": []},
-		"notebook-minimap": {"assign": []},
-		"notebook-multiselect": {"assign": []},
-		"notebook-output": {"assign": []},
-		"notebook-perf": {"assign": []},
-		"notebook-remote": {"assign": []},
-		"notebook-rendering": {"assign": []},
-		"notebook-serialization": {"assign": []},
-		"notebook-serverless-web": {"assign": []},
-		"notebook-statusbar": {"assign": []},
-		"notebook-toc-outline": {"assign": []},
-		"notebook-undo-redo": {"assign": []},
-		"notebook-variables": {"assign": []},
-		"notebook-workbench-integration": {"assign": []},
-		"notebook-workflow": {"assign": []},
-		"open-editors": {"assign": ["lramos15"]},
-		"opener": {"assign": ["mjbvz"]},
-		"outline": {"assign": ["jrieken"]},
-		"output": {"assign": ["sandy081"]},
-		"perf": {"assign": []},
-		"perf-bloat": {"assign": []},
-		"perf-startup": {"assign": []},
-		"php": {"assign": ["roblourens"]},
-		"portable-mode": {"assign": ["joaomoreno"]},
-		"proxy": {"assign": ["chrmarti"]},
-		"quick-open": {"assign": ["TylerLeonhardt"]},
-		"quick-pick": {"assign": ["TylerLeonhardt"]},
-		"references-viewlet": {"assign": ["jrieken"]},
-		"release-notes": {"assign": []},
-		"remote": {"assign": []},
-		"remote-connection": {"assign": ["alexdima"]},
-		"remote-explorer": {"assign": ["alexr00"]},
-		"remote-tunnel": {"assign": ["aeschli", "connor4312"]},
-		"rename": {"assign": ["jrieken"]},
-		"runCommands": {"assign": ["ulugbekna"]},
-		"sandbox": {"assign": ["deepak1556"]},
-		"sash-widget": {"assign": ["joaomoreno"]},
-		"scm": {"assign": ["lszomoru"]},
-		"screencast-mode": {"assign": ["joaomoreno"]},
-		"search": {"assign": ["osortega"]},
-		"search-api": {"assign": ["osortega"]},
-		"search-editor": {"assign": ["osortega"]},
-		"search-replace": {"assign": ["sandy081"]},
-		"semantic-tokens": {"assign": ["alexdima", "aeschli"]},
-		"server": {"assign": ["alexdima"]},
-		"settings-editor": {"assign": ["rzhao271"]},
-		"settings-search": {"assign": ["rzhao271"]},
-		"settings-sync": {"assign": ["sandy081"]},
-		"settings-sync-server": {"assign": ["rzhao271"]},
-		"shared-process": {"assign": []},
-		"simple-file-dialog": {"assign": ["alexr00"]},
-		"smart-select": {"assign": ["jrieken"]},
-		"snap": {"assign": ["deepak1556"]},
-		"snippets": {"assign": ["jrieken"]},
-		"splitview-widget": {"assign": ["joaomoreno"]},
-		"suggest": {"assign": ["jrieken"]},
-		"table-widget": {"assign": ["joaomoreno"]},
-		"tasks": {"assign": ["meganrogge"], "accuracy": 0.85},
-		"telemetry": {"assign": ["lramos15"]},
-		"terminal": {"assign": ["meganrogge"]},
-		"terminal-accessibility": {"assign": ["meganrogge"]},
-		"terminal-conpty": {"assign": ["meganrogge"]},
-		"terminal-editors": {"assign": ["meganrogge"]},
-		"terminal-env-collection": {"assign": ["anthonykim1"]},
-		"terminal-external": {"assign": ["anthonykim1"]},
-		"terminal-find": {"assign": ["anthonykim1"]},
-		"terminal-inline-chat": {"assign": ["Tyriar", "meganrogge"]},
-		"terminal-input": {"assign": ["Tyriar"]},
-		"terminal-layout": {"assign": ["anthonykim1"]},
-		"terminal-ligatures": {"assign": ["Tyriar"]},
-		"terminal-links": {"assign": ["anthonykim1"]},
-		"terminal-local-echo": {"assign": ["anthonykim1"]},
-		"terminal-parser": {"assign": ["Tyriar"]},
-		"terminal-persistence": {"assign": ["Tyriar"]},
-		"terminal-process": {"assign": ["anthonykim1"]},
-		"terminal-profiles": {"assign": ["meganrogge"]},
-		"terminal-quick-fix": {"assign": ["meganrogge"]},
-		"terminal-rendering": {"assign": ["Tyriar"]},
-		"terminal-shell-bash": {"assign": ["anthonykim1"]},
-		"terminal-shell-cmd": {"assign": ["anthonykim1"]},
-		"terminal-shell-fish": {"assign": ["anthonykim1"]},
-		"terminal-shell-git-bash": {"assign": ["anthonykim1"]},
-		"terminal-shell-integration": {"assign": ["anthonykim1"]},
-		"terminal-shell-pwsh": {"assign": ["anthonykim1"]},
-		"terminal-shell-sh": {"assign": ["anthonykim1"]},
-		"terminal-shell-zsh": {"assign": ["anthonykim1"]},
-		"terminal-sticky-scroll": {"assign": ["anthonykim1"]},
-		"terminal-suggest": {"assign": ["meganrogge"]},
-		"terminal-tabs": {"assign": ["meganrogge"]},
-		"testing": {"assign": ["connor4312"]},
-		"themes": {"assign": ["aeschli"]},
-		"timeline": {"assign": ["lramos15"]},
-		"timeline-git": {"assign": ["lszomoru"]},
-		"timeline-local-history": {"assign": ["bpasero"]},
-		"titlebar": {"assign": ["benibenj"]},
-		"tokenization": {"assign": ["alexdima"]},
-		"touch/pointer": {"assign": []},
-		"trackpad/scroll": {"assign": []},
-		"tree-sticky-scroll": {"assign": ["benibenj"]},
-		"tree-views": {"assign": ["alexr00"]},
-		"tree-widget": {"assign": ["joaomoreno"]},
-		"typehierarchy": {"assign": ["jrieken"]},
-		"typescript": {"assign": ["mjbvz"]},
-		"undo-redo": {"assign": ["alexdima"]},
-		"unicode-highlight": {"assign": ["hediet"]},
-		"uri": {"assign": ["jrieken"]},
-		"user-profiles": {"assign": ["sandy081"]},
-		"ux": {"assign": ["daviddossett"]},
-		"variable-resolving": {"assign": ["alexr00"]},
-		"VIM": {"assign": ["rebornix"]},
-		"virtual-workspaces": {"assign": []},
-		"vscode.dev": {"assign": []},
-		"vscode-build": {"assign": []},
-		"vscode-website": {"assign": ["rzhao271"]},
-		"web": {"assign": []},
-		"webview": {"assign": ["mjbvz"]},
-		"webview-views": {"assign": ["mjbvz"]},
-		"workbench-actions": {"assign": ["bpasero"]},
-		"workbench-auxwindow": {"assign": ["bpasero"]},
-		"workbench-banner": {"assign": ["lszomoru", "sbatten"]},
-		"workbench-cli": {"assign": ["bpasero"]},
-		"workbench-diagnostics": {"assign": ["Tyriar"]},
-		"workbench-dnd": {"assign": ["bpasero"]},
-		"workbench-editor-grid": {"assign": ["benibenj"]},
-		"workbench-editor-groups": {"assign": ["bpasero"]},
-		"workbench-editor-resolver": {"assign": ["lramos15"]},
-		"workbench-editors": {"assign": ["bpasero"]},
-		"workbench-electron": {"assign": ["deepak1556"]},
-		"workbench-fonts": {"assign": []},
-		"workbench-history": {"assign": ["bpasero"]},
-		"workbench-hot-exit": {"assign": ["bpasero"]},
-		"workbench-hover": {"assign": ["Tyriar", "benibenj"]},
-		"workbench-launch": {"assign": []},
-		"workbench-link": {"assign": []},
-		"workbench-multiroot": {"assign": ["bpasero"]},
-		"workbench-notifications": {"assign": ["bpasero"]},
-		"workbench-os-integration": {"assign": ["bpasero"]},
-		"workbench-rapid-render": {"assign": ["jrieken"]},
-		"workbench-run-as-admin": {"assign": ["bpasero"]},
-		"workbench-state": {"assign": ["bpasero"]},
-		"workbench-status": {"assign": ["bpasero"]},
-		"workbench-tabs": {"assign": ["benibenj"]},
-		"workbench-touchbar": {"assign": ["bpasero"]},
-		"workbench-untitled-editors": {"assign": ["bpasero"]},
-		"workbench-views": {"assign": ["benibenj"]},
-		"workbench-welcome": {"assign": ["lramos15"]},
-		"workbench-window": {"assign": ["bpasero"]},
-		"workbench-workspace": {"assign": []},
-		"workbench-zen": {"assign": ["benibenj"]},
-		"workspace-edit": {"assign": ["jrieken"]},
-		"workspace-symbols": {"assign": []},
-		"workspace-trust": {"assign": ["lszomoru", "sbatten"]},
-		"zoom": {"assign": ["alexdima"] }
+		"accessibility": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"api": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"api-finalization": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"api-proposal": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"authentication": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"bisect-ext": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"bot-proposal": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"bracket-pair-colorization": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"bracket-pair-guides": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"breadcrumbs": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"callhierarchy": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"chat-terminal": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"chat-terminal-output-monitor": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"chrome-devtools": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"cloud-changes": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"code-cli": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"code-lens": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"code-server-web": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"command-center": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"comments": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"config": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"containers": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"context-keys": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"continue-working-on": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"css-less-scss": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"custom-editors": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"debug": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"debug-disassembly": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"dialogs": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"diff-editor": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"dropdown": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-api": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-autoclosing": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-autoindent": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-bracket-matching": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-clipboard": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-code-actions": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-color-picker": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-columnselect": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-commands": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-comments": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-contrib": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-core": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-drag-and-drop": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-error-widget": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-find": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-folding": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-highlight": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-hover": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-indent-detection": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-indent-guides": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-input": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-input-IME": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-insets": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-minimap": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-multicursor": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-parameter-hints": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-render-whitespace": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-rendering": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-RTL": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-scrollbar": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-sorting": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-sticky-scroll": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-symbols": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-synced-region": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-textbuffer": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-theming": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-wordnav": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"editor-wrapping": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"emmet": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"emmet-parse": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"error-list": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"extension-activation": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"extension-host": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"extension-prerelease": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"extension-recommendations": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"extensions": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"extensions-development": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"file-decorations": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"file-encoding": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"file-explorer": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"file-glob": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"file-io": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"file-nesting": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"file-watcher": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"font-rendering": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"formatting": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"getting-started": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"ghost-text": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"git": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"github": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"github-authentication": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"github-repositories": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"gpu": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"grammar": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"grid-widget": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"html": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"icon-brand": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"icons-product": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"image-preview": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"inlay-hints": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"inline-completions": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"install-update": {
+			"assign": [
+				"malwarebo"
+			],
+			"accuracy": 0.85
+		},
+		"intellisense-config": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"interactive-playground": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"interactive-window": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"ipc": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"issue-bot": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"issue-reporter": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"javascript": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"json": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"json-sorting": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"keybindings": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"keybindings-editor": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"keyboard-layout": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"L10N": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"l10n-platform": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"label-provider": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"languages-basic": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"languages-diagnostics": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"languages-guessing": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"layout": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"lcd-text-rendering": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"list-widget": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"live-preview": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"log": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"markdown": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"marketplace": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"menus": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"merge-conflict": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"merge-editor": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"merge-editor-workbench": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"monaco-editor": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"native-file-dialog": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"network": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-api": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-builtin-renderers": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-cell-editor": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-celltoolbar": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-clipboard": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-commenting": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-debugging": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-diff": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-dnd": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-execution": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-find": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-folding": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-getting-started": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-getting-globaltoolbar": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-ipynb": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-kernel": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-kernel-picker": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-keybinding": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-language": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-layout": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-markdown": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-math": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-minimap": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-multiselect": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-output": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-perf": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-remote": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-rendering": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-serialization": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-serverless-web": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-statusbar": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-toc-outline": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-undo-redo": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-variables": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-workbench-integration": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"notebook-workflow": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"open-editors": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"opener": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"outline": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"output": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"perf": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"perf-bloat": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"perf-startup": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"php": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"portable-mode": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"proxy": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"quick-open": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"quick-pick": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"references-viewlet": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"release-notes": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"remote": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"remote-connection": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"remote-explorer": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"remote-tunnel": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"rename": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"runCommands": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"sandbox": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"sash-widget": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"scm": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"screencast-mode": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"search": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"search-api": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"search-editor": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"search-replace": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"semantic-tokens": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"server": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"settings-editor": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"settings-search": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"settings-sync": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"settings-sync-server": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"shared-process": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"simple-file-dialog": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"smart-select": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"snap": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"snippets": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"splitview-widget": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"suggest": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"table-widget": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"tasks": {
+			"assign": [
+				"malwarebo"
+			],
+			"accuracy": 0.85
+		},
+		"telemetry": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-accessibility": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-conpty": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-editors": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-env-collection": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-external": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-find": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-inline-chat": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-input": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-layout": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-ligatures": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-links": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-local-echo": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-parser": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-persistence": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-process": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-profiles": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-quick-fix": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-rendering": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-shell-bash": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-shell-cmd": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-shell-fish": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-shell-git-bash": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-shell-integration": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-shell-pwsh": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-shell-sh": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-shell-zsh": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-sticky-scroll": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-suggest": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"terminal-tabs": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"testing": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"themes": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"timeline": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"timeline-git": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"timeline-local-history": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"titlebar": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"tokenization": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"touch/pointer": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"trackpad/scroll": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"tree-sticky-scroll": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"tree-views": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"tree-widget": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"typehierarchy": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"typescript": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"undo-redo": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"unicode-highlight": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"uri": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"user-profiles": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"ux": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"variable-resolving": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"VIM": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"virtual-workspaces": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"vscode.dev": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"vscode-build": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"vscode-website": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"web": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"webview": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"webview-views": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-actions": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-auxwindow": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-banner": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-cli": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-diagnostics": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-dnd": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-editor-grid": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-editor-groups": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-editor-resolver": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-editors": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-electron": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-fonts": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-history": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-hot-exit": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-hover": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-launch": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-link": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-multiroot": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-notifications": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-os-integration": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-rapid-render": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-run-as-admin": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-state": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-status": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-tabs": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-touchbar": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-untitled-editors": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-views": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-welcome": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-window": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-workspace": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workbench-zen": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workspace-edit": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workspace-symbols": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"workspace-trust": {
+			"assign": [
+				"malwarebo"
+			]
+		},
+		"zoom": {
+			"assign": [
+				"malwarebo"
+			]
+		}
 	}
 }

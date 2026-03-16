@@ -31,7 +31,7 @@ export class NyrveConfigScanner {
 	constructor(
 		private readonly fileService: IFileService,
 		private readonly logService: ILogService,
-	) {}
+	) { }
 
 	async scan(root: URI): Promise<ConfigScanResult> {
 		this.logService.info('[Nyrve] Config scanner: scanning project configuration...');

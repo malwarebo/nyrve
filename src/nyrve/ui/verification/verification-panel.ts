@@ -130,7 +130,7 @@ export class NyrveVerificationPanel extends Disposable implements INyrveVerifica
 		// Self-heal history
 		if (report.attempts.length > 0) {
 			parts.push(`<div class="nyrve-vr-heal">`);
-			parts.push(`<span class="nyrve-vr-heal-icon">🔧</span>`);
+			parts.push(`<span class="nyrve-vr-heal-icon">\u{1F527}</span>`);
 			parts.push(`<span>${localize('nyrve.verification.selfHealed', "Self-healed: Fixed {0} issue(s) on attempt {1}",
 				report.attempts.reduce((sum, a) => sum + a.fixesApplied.length, 0),
 				report.attempts.length
@@ -149,7 +149,8 @@ export class NyrveVerificationPanel extends Disposable implements INyrveVerifica
 			parts.push(`<div class="nyrve-vr-suggestions">`);
 			for (const suggestion of report.suggestions) {
 				parts.push(`<div class="nyrve-vr-suggestion">`);
-				parts.push(`<span>💡 ${suggestion.description}</span>`);
+				// allow-any-unicode-next-line
+				parts.push(`<span>\u{1F4A1} ${suggestion.description}</span>`);
 				parts.push(`<button class="nyrve-vr-suggestion-btn" data-action="${suggestion.type}">${suggestion.actionLabel}</button>`);
 				parts.push(`</div>`);
 			}
@@ -162,10 +163,10 @@ export class NyrveVerificationPanel extends Disposable implements INyrveVerifica
 	}
 
 	renderProgressHtml(progress: VerificationProgress): string {
-		const icon = progress.status === 'running' ? '⏳'
-			: progress.status === 'passed' ? '✅'
-				: progress.status === 'failed' ? '❌'
-					: '⏭';
+		const icon = progress.status === 'running' ? '\u23F3'
+			: progress.status === 'passed' ? '\u2705'
+				: progress.status === 'failed' ? '\u274C'
+					: '\u23ED';
 
 		return `<div class="nyrve-vr-progress">${icon} ${progress.message}</div>`;
 	}
@@ -186,20 +187,20 @@ export class NyrveVerificationPanel extends Disposable implements INyrveVerifica
 
 	private _getStatusIcon(status: string): string {
 		switch (status) {
-			case 'passed': return '✅';
+			case 'passed': return '\u2705';
 			case 'passed_with_warnings': return '⚠️';
-			case 'failed': return '❌';
-			default: return '⏭';
+			case 'failed': return '\u274C';
+			default: return '\u23ED';
 		}
 	}
 
 	private _getCheckIcon(status: string): string {
 		switch (status) {
-			case 'pass': return '✅';
-			case 'fail': return '❌';
-			case 'skipped': return '⏭';
-			case 'no_tests': return '⏭';
-			default: return '❓';
+			case 'pass': return '\u2705';
+			case 'fail': return '\u274C';
+			case 'skipped': return '\u23ED';
+			case 'no_tests': return '\u23ED';
+			default: return '\u2753';
 		}
 	}
 

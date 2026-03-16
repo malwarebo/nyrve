@@ -31,7 +31,7 @@ export class NyrveComplexityAnalyzer {
 		private readonly indexManager: INyrveIndexManager,
 		private readonly workspaceContextService: IWorkspaceContextService,
 		private readonly logService: ILogService,
-	) {}
+	) { }
 
 	async analyze(): Promise<ComplexityResult> {
 		this.logService.info('[Nyrve] Complexity analyzer: scanning for tech debt and complexity...');

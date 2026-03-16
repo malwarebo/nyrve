@@ -19,7 +19,8 @@ export function renderConfidenceBadge(confidence: number): string {
  */
 export function renderVerificationStatus(report: VerificationReport | undefined, isVerifying: boolean): string {
 	if (isVerifying) {
-		return `<span class="nyrve-vr-status nyrve-vr-verifying">⏳ ${localize('nyrve.verification.verifying', "Verifying...")}</span>`;
+		// allow-any-unicode-next-line
+		return `<span class="nyrve-vr-status nyrve-vr-verifying">\u23F3 ${localize('nyrve.verification.verifying', "Verifying...")}</span>`;
 	}
 
 	if (!report) {
@@ -28,11 +29,13 @@ export function renderVerificationStatus(report: VerificationReport | undefined,
 
 	switch (report.status) {
 		case 'passed':
-			return `<span class="nyrve-vr-status nyrve-vr-passed">✅ ${localize('nyrve.verification.verified', "Verified")} ${renderConfidenceBadge(report.confidence)}</span>`;
+			// allow-any-unicode-next-line
+			return `<span class="nyrve-vr-status nyrve-vr-passed">\u2705 ${localize('nyrve.verification.verified', "Verified")} ${renderConfidenceBadge(report.confidence)}</span>`;
 		case 'passed_with_warnings':
-			return `<span class="nyrve-vr-status nyrve-vr-warnings">⚠️ ${localize('nyrve.verification.verifiedWarnings', "Verified with warnings")} ${renderConfidenceBadge(report.confidence)}</span>`;
+			return `<span class="nyrve-vr-status nyrve-vr-warnings">\u26A0\uFE0F ${localize('nyrve.verification.verifiedWarnings', "Verified with warnings")} ${renderConfidenceBadge(report.confidence)}</span>`;
 		case 'failed':
-			return `<span class="nyrve-vr-status nyrve-vr-failed">❌ ${localize('nyrve.verification.failed', "Verification failed")}</span>`;
+			// allow-any-unicode-next-line
+			return `<span class="nyrve-vr-status nyrve-vr-failed">\u274C ${localize('nyrve.verification.failed', "Verification failed")}</span>`;
 		default:
 			return '';
 	}

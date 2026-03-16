@@ -63,24 +63,7 @@ const QUICK_ACTIONS: QuickAction[] = [
 const CONTEXT_CHIPS = ['@active', '@errors', '@git-diff', '@tests', '@terminal', '@search'];
 
 // Flame SVG without background rect — just the flame paths
-const FLAME_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="44" height="44">
-  <defs>
-    <linearGradient id="wf-outer" x1="0.3" y1="1" x2="0.7" y2="0">
-      <stop offset="0%" stop-color="#993C1D"/>
-      <stop offset="40%" stop-color="#D85A30"/>
-      <stop offset="70%" stop-color="#EF9F27"/>
-      <stop offset="100%" stop-color="#FAC775"/>
-    </linearGradient>
-    <linearGradient id="wf-inner" x1="0.5" y1="1" x2="0.5" y2="0">
-      <stop offset="0%" stop-color="#EF9F27"/>
-      <stop offset="60%" stop-color="#FAC775"/>
-      <stop offset="100%" stop-color="#FAEEDA"/>
-    </linearGradient>
-  </defs>
-  <path d="M256 56 C362 140, 432 244, 432 320 C432 416, 352 480, 256 480 C160 480, 80 416, 80 320 C80 244, 150 140, 256 56Z" fill="url(#wf-outer)"/>
-  <path d="M256 186 C309 250, 346 300, 346 344 C346 394, 306 420, 256 420 C206 420, 166 394, 166 344 C166 300, 203 250, 256 186Z" fill="url(#wf-inner)" opacity="0.85"/>
-  <ellipse cx="256" cy="356" rx="42" ry="46" fill="#FAEEDA" opacity="0.4"/>
-</svg>`;
+const FLAME_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="44" height="44"><defs><linearGradient id="wf-outer" x1="0.3" y1="1" x2="0.7" y2="0"><stop offset="0%" stop-color="#993C1D"/><stop offset="40%" stop-color="#D85A30"/><stop offset="70%" stop-color="#EF9F27"/><stop offset="100%" stop-color="#FAC775"/></linearGradient><linearGradient id="wf-inner" x1="0.5" y1="1" x2="0.5" y2="0"><stop offset="0%" stop-color="#EF9F27"/><stop offset="60%" stop-color="#FAC775"/><stop offset="100%" stop-color="#FAEEDA"/></linearGradient></defs><path d="M256 56 C362 140, 432 244, 432 320 C432 416, 352 480, 256 480 C160 480, 80 416, 80 320 C80 244, 150 140, 256 56Z" fill="url(#wf-outer)"/><path d="M256 186 C309 250, 346 300, 346 344 C346 394, 306 420, 256 420 C206 420, 166 394, 166 344 C166 300, 203 250, 256 186Z" fill="url(#wf-inner)" opacity="0.85"/><ellipse cx="256" cy="356" rx="42" ry="46" fill="#FAEEDA" opacity="0.4"/></svg>';
 
 // --- Welcome State Component ---
 

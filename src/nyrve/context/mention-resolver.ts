@@ -153,7 +153,8 @@ export class NyrveMentionResolver extends Disposable implements INyrveMentionRes
 			}
 
 			const tree = stat.children.map(c => {
-				const icon = c.isDirectory ? '📁' : '📄';
+				// allow-any-unicode-next-line
+				const icon = c.isDirectory ? '\u{1F4C1}' : '\u{1F4C4}';
 				return `${icon} ${c.name}`;
 			}).join('\n');
 

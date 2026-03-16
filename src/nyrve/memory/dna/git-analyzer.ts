@@ -37,7 +37,7 @@ export class NyrveGitAnalyzer {
 	constructor(
 		private readonly workspaceContextService: IWorkspaceContextService,
 		private readonly logService: ILogService,
-	) {}
+	) { }
 
 	async analyze(historyDays: number): Promise<GitAnalysisResult> {
 		this.logService.info(`[Nyrve] Git analyzer: analyzing ${historyDays} days of history...`);

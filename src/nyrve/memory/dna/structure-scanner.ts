@@ -37,7 +37,7 @@ export class NyrveStructureScanner {
 	constructor(
 		private readonly indexManager: INyrveIndexManager,
 		private readonly logService: ILogService,
-	) {}
+	) { }
 
 	async scan(): Promise<StructureScanResult> {
 		this.logService.info('[Nyrve] Structure scanner: analyzing codebase structure...');

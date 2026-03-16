@@ -168,7 +168,7 @@ export class NyrveMemoryRetriever extends Disposable implements INyrveMemoryRetr
 			const queryResults = await this.decisionJournal.searchDecisions(query, 5);
 
 			// Also search by module if specified
-			let moduleResults: typeof queryResults = [];
+			const moduleResults: typeof queryResults = [];
 			if (modules) {
 				for (const mod of modules) {
 					const results = await this.decisionJournal.getDecisionsByModule(mod);

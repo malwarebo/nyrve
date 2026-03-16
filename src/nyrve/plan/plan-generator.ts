@@ -53,28 +53,7 @@ Rules:
 - If the task is large (>10 steps), group steps into phases
 
 Output your response as a JSON object matching this structure:
-{
-  "title": "short title (max 8 words)",
-  "description": "summary of what the plan accomplishes",
-  "steps": [
-    {
-      "title": "step title (max 8 words)",
-      "description": "detailed description of what this step does",
-      "actions": [
-        {
-          "type": "create_file" | "modify_file" | "delete_file" | "run_command" | "install_package",
-          "filePath": "path/to/file",
-          "description": "what this action does",
-          "command": "npm install ...",
-          "estimatedLinesChanged": 50
-        }
-      ],
-      "dependsOn": []
-    }
-  ],
-  "estimatedTokens": 50000,
-  "estimatedTime": "~5 minutes"
-}
+{"title":"short title (max 8 words)","description":"summary of what the plan accomplishes","steps":[{"title":"step title","description":"detailed description","actions":[{"type":"create_file|modify_file|delete_file|run_command|install_package","filePath":"path/to/file","description":"what this action does","command":"npm install ...","estimatedLinesChanged":50}],"dependsOn":[]}],"estimatedTokens":50000,"estimatedTime":"~5 minutes"}
 
 Only output valid JSON. No markdown, no explanation outside the JSON.`;
 

@@ -16,10 +16,10 @@ import { NYRVE_AGENT_VIEW_CONTAINER_ID } from '../agent-panel/agent-panel.js';
  * Status bar contribution showing Nyrve connection status, agent state, model, and token usage.
  *
  * States:
- * - 🟢 Nyrve: Connected — key valid, API reachable
- * - 🟡 Nyrve: No API Key — click opens setup
- * - 🔴 Nyrve: Disconnected — key invalid or API unreachable
- * - ⏳ Nyrve: Connecting... — during validation
+ * - Connected — key valid, API reachable
+ * - No API Key — click opens setup
+ * - Disconnected — key invalid or API unreachable
+ * - Connecting... — during validation
  *
  * When connected, shows the active model and agent state (idle/thinking/streaming).
  */

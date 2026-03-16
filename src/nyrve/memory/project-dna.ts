@@ -3,25 +3,43 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, Event } from '../../vs/base/common/event.js';
-import { Disposable } from '../../vs/base/common/lifecycle.js';
-import { createDecorator } from '../../vs/platform/instantiation/common/instantiation.js';
-import { InstantiationType, registerSingleton } from '../../vs/platform/instantiation/common/extensions.js';
-import { ILogService } from '../../vs/platform/log/common/log.js';
-import { IFileService } from '../../vs/platform/files/common/files.js';
-import { IConfigurationService } from '../../vs/platform/configuration/common/configuration.js';
-import { IWorkspaceContextService } from '../../vs/platform/workspace/common/workspace.js';
-import { URI } from '../../vs/base/common/uri.js';
-import { VSBuffer } from '../../vs/base/common/buffer.js';
-import { INyrveIndexManager } from '../indexer/index-manager.js';
-import { INyrveAgentEngine } from '../agent/agent-engine.js';
-import { INyrveModelRouter } from '../agent/model-router.js';
-import { NyrveConfigScanner, TechStackEntry } from './dna/config-scanner.js';
-import { NyrveStructureScanner, ModuleInfo, DependencyEdge } from './dna/structure-scanner.js';
-import { NyrveGitAnalyzer, FileHotspot, FileCoupling } from './dna/git-analyzer.js';
-import { NyrveComplexityAnalyzer, TechDebtItem } from './dna/complexity-analyzer.js';
-import { NyrvePatternDetector, CodePattern, Convention } from './dna/pattern-detector.js';
-import { compressDNA } from './dna/dna-compressor.js';
+import { Emitter, Event } from "../../vs/base/common/event.js";
+import { Disposable } from "../../vs/base/common/lifecycle.js";
+import { createDecorator } from "../../vs/platform/instantiation/common/instantiation.js";
+import {
+	InstantiationType,
+	registerSingleton,
+} from "../../vs/platform/instantiation/common/extensions.js";
+import { ILogService } from "../../vs/platform/log/common/log.js";
+import { IFileService } from "../../vs/platform/files/common/files.js";
+import { IConfigurationService } from "../../vs/platform/configuration/common/configuration.js";
+import { IWorkspaceContextService } from "../../vs/platform/workspace/common/workspace.js";
+import { URI } from "../../vs/base/common/uri.js";
+import { VSBuffer } from "../../vs/base/common/buffer.js";
+import { INyrveIndexManager } from "../indexer/index-manager.js";
+import { INyrveAgentEngine } from "../agent/agent-engine.js";
+import { INyrveModelRouter } from "../agent/model-router.js";
+import { NyrveConfigScanner, TechStackEntry } from "./dna/config-scanner.js";
+import {
+	NyrveStructureScanner,
+	ModuleInfo,
+	DependencyEdge,
+} from "./dna/structure-scanner.js";
+import {
+	NyrveGitAnalyzer,
+	FileHotspot,
+	FileCoupling,
+} from "./dna/git-analyzer.js";
+import {
+	NyrveComplexityAnalyzer,
+	TechDebtItem,
+} from "./dna/complexity-analyzer.js";
+import {
+	NyrvePatternDetector,
+	CodePattern,
+	Convention,
+} from "./dna/pattern-detector.js";
+import { compressDNA } from "./dna/dna-compressor.js";
 
 // --- Types ---
 
@@ -62,7 +80,11 @@ export interface ProjectDNA {
 
 	complexity: {
 		largestFiles: Array<{ path: string; lines: number }>;
-		mostComplexFunctions: Array<{ path: string; name: string; cyclomaticComplexity: number }>;
+		mostComplexFunctions: Array<{
+			path: string;
+			name: string;
+			cyclomaticComplexity: number;
+		}>;
 		techDebt: TechDebtItem[];
 	};
 
@@ -73,7 +95,8 @@ export interface ProjectDNA {
 
 // --- Service Interface ---
 
-export const INyrveProjectDNA = createDecorator<INyrveProjectDNA>('nyrveProjectDNA');
+export const INyrveProjectDNA =
+	createDecorator<INyrveProjectDNA>("nyrveProjectDNA");
 
 export interface INyrveProjectDNA {
 	readonly _serviceBrand: undefined;
@@ -96,14 +119,18 @@ export interface INyrveProjectDNA {
 
 // --- Service Implementation ---
 
-export class NyrveProjectDNAService extends Disposable implements INyrveProjectDNA {
+export class NyrveProjectDNAService
+	extends Disposable
+	implements INyrveProjectDNA {
 	declare readonly _serviceBrand: undefined;
 
-	private readonly _onDidScanComplete = this._register(new Emitter<ProjectDNA>());
+	private readonly _onDidScanComplete = this._register(
+		new Emitter<ProjectDNA>(),
+	);
 	readonly onDidScanComplete: Event<ProjectDNA> = this._onDidScanComplete.event;
 
 	private _dna: ProjectDNA | undefined;
-	private _compressedSummary: string = '';
+	private _compressedSummary: string = "";
 
 	private readonly configScanner: NyrveConfigScanner;
 	private readonly structureScanner: NyrveStructureScanner;
@@ -116,17 +143,31 @@ export class NyrveProjectDNAService extends Disposable implements INyrveProjectD
 		@INyrveIndexManager indexManager: INyrveIndexManager,
 		@INyrveAgentEngine agentEngine: INyrveAgentEngine,
 		@INyrveModelRouter modelRouter: INyrveModelRouter,
-		@IConfigurationService private readonly configurationService: IConfigurationService,
-		@IWorkspaceContextService private readonly workspaceContextService: IWorkspaceContextService,
+		@IConfigurationService
+		private readonly configurationService: IConfigurationService,
+		@IWorkspaceContextService
+		private readonly workspaceContextService: IWorkspaceContextService,
 		@ILogService private readonly logService: ILogService,
 	) {
 		super();
 
 		this.configScanner = new NyrveConfigScanner(fileService, logService);
 		this.structureScanner = new NyrveStructureScanner(indexManager, logService);
-		this.gitAnalyzer = new NyrveGitAnalyzer(workspaceContextService, logService);
-		this.complexityAnalyzer = new NyrveComplexityAnalyzer(indexManager, workspaceContextService, logService);
-		this.patternDetector = new NyrvePatternDetector(agentEngine, modelRouter, indexManager, logService);
+		this.gitAnalyzer = new NyrveGitAnalyzer(
+			workspaceContextService,
+			logService,
+		);
+		this.complexityAnalyzer = new NyrveComplexityAnalyzer(
+			indexManager,
+			workspaceContextService,
+			logService,
+		);
+		this.patternDetector = new NyrvePatternDetector(
+			agentEngine,
+			modelRouter,
+			indexManager,
+			logService,
+		);
 
 		// Try to load from disk on init
 		this._loadFromDisk();
@@ -141,25 +182,36 @@ export class NyrveProjectDNAService extends Disposable implements INyrveProjectD
 	}
 
 	async fullScan(): Promise<ProjectDNA> {
-		const enabled = this.configurationService.getValue<boolean>('nyrve.memory.dna.enabled') ?? true;
+		const enabled =
+			this.configurationService.getValue<boolean>("nyrve.memory.dna.enabled") ??
+			true;
 		if (!enabled) {
-			this.logService.info('[Nyrve] Project DNA scanning is disabled');
+			this.logService.info("[Nyrve] Project DNA scanning is disabled");
 			return this._emptyDNA();
 		}
 
 		const startTime = Date.now();
-		this.logService.info('[Nyrve] Starting full DNA scan...');
+		this.logService.info("[Nyrve] Starting full DNA scan...");
 
 		const root = this._getWorkspaceRoot();
 		if (!root) {
 			return this._emptyDNA();
 		}
 
-		const historyDays = this.configurationService.getValue<number>('nyrve.memory.dna.gitHistoryDays') ?? 90;
+		const historyDays =
+			this.configurationService.getValue<number>(
+				"nyrve.memory.dna.gitHistoryDays",
+			) ?? 90;
 
 		try {
 			// Run all scanners in parallel
-			const [configResult, structureResult, gitResult, complexityResult, patternResult] = await Promise.all([
+			const [
+				configResult,
+				structureResult,
+				gitResult,
+				complexityResult,
+				patternResult,
+			] = await Promise.all([
 				this.configScanner.scan(root),
 				this.structureScanner.scan(),
 				this.gitAnalyzer.analyze(historyDays),
@@ -207,7 +259,9 @@ export class NyrveProjectDNAService extends Disposable implements INyrveProjectD
 			this._compressedSummary = compressDNA(dna);
 			await this._saveToDisk(dna);
 
-			this.logService.info(`[Nyrve] Full DNA scan complete in ${scanDuration}ms`);
+			this.logService.info(
+				`[Nyrve] Full DNA scan complete in ${scanDuration}ms`,
+			);
 			this._onDidScanComplete.fire(dna);
 
 			return dna;
@@ -222,7 +276,10 @@ export class NyrveProjectDNAService extends Disposable implements INyrveProjectD
 			return;
 		}
 
-		const enabled = this.configurationService.getValue<boolean>('nyrve.memory.dna.incrementalUpdates') ?? true;
+		const enabled =
+			this.configurationService.getValue<boolean>(
+				"nyrve.memory.dna.incrementalUpdates",
+			) ?? true;
 		if (!enabled) {
 			return;
 		}
@@ -230,8 +287,14 @@ export class NyrveProjectDNAService extends Disposable implements INyrveProjectD
 		this.logService.trace(`[Nyrve] DNA incremental update for: ${filePath}`);
 
 		// Check if it's a config file change (needs tech stack re-scan)
-		const configFiles = ['package.json', 'pyproject.toml', 'Cargo.toml', 'go.mod', 'Gemfile'];
-		const isConfigChange = configFiles.some(f => filePath.endsWith(f));
+		const configFiles = [
+			"package.json",
+			"pyproject.toml",
+			"Cargo.toml",
+			"go.mod",
+			"Gemfile",
+		];
+		const isConfigChange = configFiles.some((f) => filePath.endsWith(f));
 
 		if (isConfigChange) {
 			const root = this._getWorkspaceRoot();
@@ -245,12 +308,17 @@ export class NyrveProjectDNAService extends Disposable implements INyrveProjectD
 		this._compressedSummary = compressDNA(this._dna);
 	}
 
-	private _buildTestingInfo(configResult: { techStack: TechStackEntry[] }): ProjectDNA['testing'] {
-		const testFramework = configResult.techStack.find(t => t.category === 'testing');
+	private _buildTestingInfo(configResult: {
+		techStack: TechStackEntry[];
+	}): ProjectDNA["testing"] {
+		const testFramework = configResult.techStack.find(
+			(t) => t.category === "testing",
+		);
 		return {
-			framework: testFramework?.name ?? '',
-			testDirectory: '',
-			namingConvention: testFramework?.name === 'pytest' ? 'test_*.py' : '*.test.ts',
+			framework: testFramework?.name ?? "",
+			testDirectory: "",
+			namingConvention:
+				testFramework?.name === "pytest" ? "test_*.py" : "*.test.ts",
 			coveragePercent: 0,
 			totalTests: 0,
 		};
@@ -268,7 +336,7 @@ export class NyrveProjectDNAService extends Disposable implements INyrveProjectD
 		}
 
 		try {
-			const uri = URI.joinPath(root, '.nyrve', 'project-dna.json');
+			const uri = URI.joinPath(root, ".nyrve", "project-dna.json");
 			const content = JSON.stringify(dna, null, 2);
 			await this.fileService.writeFile(uri, VSBuffer.fromString(content));
 		} catch (error) {
@@ -283,12 +351,14 @@ export class NyrveProjectDNAService extends Disposable implements INyrveProjectD
 		}
 
 		try {
-			const uri = URI.joinPath(root, '.nyrve', 'project-dna.json');
+			const uri = URI.joinPath(root, ".nyrve", "project-dna.json");
 			const content = await this.fileService.readFile(uri);
 			this._dna = JSON.parse(content.value.toString());
 			if (this._dna) {
 				this._compressedSummary = compressDNA(this._dna);
-				this.logService.info(`[Nyrve] Loaded DNA from disk (last scan: ${this._dna.lastFullScan})`);
+				this.logService.info(
+					`[Nyrve] Loaded DNA from disk (last scan: ${this._dna.lastFullScan})`,
+				);
 			}
 		} catch {
 			// File doesn't exist yet, that's fine
@@ -297,22 +367,45 @@ export class NyrveProjectDNAService extends Disposable implements INyrveProjectD
 
 	private _emptyDNA(): ProjectDNA {
 		return {
-			projectName: '',
-			description: '',
-			primaryLanguage: 'unknown',
+			projectName: "",
+			description: "",
+			primaryLanguage: "unknown",
 			languages: [],
 			techStack: [],
-			architecture: { type: 'unknown', entryPoints: [], moduleMap: [], dependencyGraph: [], layering: [] },
+			architecture: {
+				type: "unknown",
+				entryPoints: [],
+				moduleMap: [],
+				dependencyGraph: [],
+				layering: [],
+			},
 			patterns: [],
 			conventions: [],
-			testing: { framework: '', testDirectory: '', namingConvention: '', coveragePercent: 0, totalTests: 0 },
-			git: { totalCommits: 0, activeContributors: 0, hotspots: [], couplings: [], churnRate: 0, branchStrategy: 'unknown' },
+			testing: {
+				framework: "",
+				testDirectory: "",
+				namingConvention: "",
+				coveragePercent: 0,
+				totalTests: 0,
+			},
+			git: {
+				totalCommits: 0,
+				activeContributors: 0,
+				hotspots: [],
+				couplings: [],
+				churnRate: 0,
+				branchStrategy: "unknown",
+			},
 			complexity: { largestFiles: [], mostComplexFunctions: [], techDebt: [] },
-			lastFullScan: '',
-			lastIncrementalUpdate: '',
+			lastFullScan: "",
+			lastIncrementalUpdate: "",
 			scanDuration: 0,
 		};
 	}
 }
 
-registerSingleton(INyrveProjectDNA, NyrveProjectDNAService, InstantiationType.Delayed);
+registerSingleton(
+	INyrveProjectDNA,
+	NyrveProjectDNAService,
+	InstantiationType.Delayed,
+);

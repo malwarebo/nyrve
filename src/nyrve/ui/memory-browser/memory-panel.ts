@@ -52,7 +52,7 @@ export class NyrveMemoryBrowser extends Disposable {
 		this._container.appendChild(this._renderToolbar());
 
 		// Memory list
-		let memories = this._getFilteredMemories();
+		const memories = this._getFilteredMemories();
 
 		if (memories.length === 0) {
 			const empty = document.createElement('div');

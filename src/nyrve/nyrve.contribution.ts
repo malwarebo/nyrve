@@ -12,6 +12,7 @@ import { KeybindingWeight } from '../vs/platform/keybinding/common/keybindingsRe
 import { KeyMod, KeyCode } from '../vs/base/common/keyCodes.js';
 import type { ServicesAccessor } from '../vs/platform/instantiation/common/instantiation.js';
 import { INyrveDiffService } from './ui/diff-review/diff-panel.js';
+import { INyrvePlanPanel } from './ui/plan/plan-panel.js';
 
 // --- Nyrve Native AI Removal (runtime deregistration of chat UI) ---
 // Native chat services remain loaded (required by tasks, debug, notebooks, MCP).
@@ -33,7 +34,6 @@ import './context/context-builder.js';
 import './indexer/nyrveignore.js';
 import './indexer/symbol-extractor.js';
 import './indexer/index-manager.js';
-import './ui/diff-review/diff-panel.js';
 import './ui/diff-review/hunk-controls.js';
 import './ui/diff-review/change-decorations.js';
 import './agent/verification/framework-detector.js';
@@ -84,7 +84,6 @@ import './vision/vision-plan-integration.js';
 import './plan/plan-types.js';
 import './plan/plan-generator.js';
 import './plan/plan-executor.js';
-import './ui/plan/plan-panel.js';
 
 // --- Nyrve Inline Completions (v3: Phase 8) ---
 import './completions/completion-trigger.js';
@@ -184,8 +183,6 @@ registerAction2(class AcceptAllHunksAction extends Action2 {
 });
 
 // --- Nyrve Plan Mode Keybindings ---
-
-import { INyrvePlanPanel } from './ui/plan/plan-panel.js';
 
 const NYRVE_PLAN_CATEGORY = localize2('nyrve.plan.category', "Nyrve Plan Mode");
 

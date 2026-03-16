@@ -20,8 +20,7 @@ import { registerIcon } from '../../../vs/platform/theme/common/iconRegistry.js'
 import { IThemeService } from '../../../vs/platform/theme/common/themeService.js';
 import { IViewPaneOptions, ViewPane } from '../../../vs/workbench/browser/parts/views/viewPane.js';
 import { ViewPaneContainer } from '../../../vs/workbench/browser/parts/views/viewPaneContainer.js';
-import { IViewContainersRegistry, IViewDescriptor, IViewsRegistry, ViewContainer, ViewContainerLocation, Extensions as ViewExtensions } from '../../../vs/workbench/common/views.js';
-import { IViewDescriptorService } from '../../../vs/workbench/common/views.js';
+import { IViewContainersRegistry, IViewDescriptor, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation, Extensions as ViewExtensions } from '../../../vs/workbench/common/views.js';
 import { NyrveAgentState, INyrveAgentService } from '../../agent/agent-service.js';
 import { NyrveStreamEvent } from '../../agent/agent-engine.js';
 import { INyrveModelRouter } from '../../agent/model-router.js';

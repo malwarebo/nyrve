@@ -204,7 +204,8 @@ export class NyrveCompletionContextService extends Disposable implements INyrveC
 		}
 
 		// Current line with cursor marker
-		parts.push(request.prefix + '█' + request.suffix);
+		// allow-any-unicode-next-line
+		parts.push(request.prefix + '\u2588' + request.suffix);
 
 		for (const line of request.linesAfter.slice(0, 10)) {
 			parts.push(line);
@@ -212,7 +213,8 @@ export class NyrveCompletionContextService extends Disposable implements INyrveC
 
 		parts.push('```');
 		parts.push('');
-		parts.push('Complete the code at the █ cursor position:');
+		// allow-any-unicode-next-line
+		parts.push('Complete the code at the \u2588 cursor position:');
 
 		const userPrompt = parts.join('\n');
 		const estimatedTokens = Math.ceil((systemPrompt.length + userPrompt.length) / 4);

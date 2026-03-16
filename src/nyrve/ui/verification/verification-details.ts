@@ -58,7 +58,7 @@ export function renderTestDetails(result: TestResult): string {
 	// Regressions
 	if (result.regressions.length > 0) {
 		parts.push(`<div class="nyrve-vr-detail-section nyrve-vr-regressions">`);
-		parts.push(`<strong>❌ ${localize('nyrve.verification.regressions', "Regressions ({0})", result.regressions.length)}</strong>`);
+		parts.push(`<strong>\u274C ${localize('nyrve.verification.regressions', "Regressions ({0})", result.regressions.length)}</strong>`);
 		for (const test of result.regressions) {
 			parts.push(renderTestCaseRow(test));
 		}
@@ -150,14 +150,14 @@ export function renderSelfHealHistory(attempts: VerificationAttempt[]): string {
 	parts.push(`<div class="nyrve-vr-detail-header">${localize('nyrve.verification.healHistory', "Self-Heal History")}</div>`);
 
 	for (const attempt of attempts) {
-		const resultIcon = attempt.result === 'fixed' ? '✅' : attempt.result === 'partially_fixed' ? '⚠️' : '❌';
+		const resultIcon = attempt.result === 'fixed' ? '\u2705' : attempt.result === 'partially_fixed' ? '⚠️' : '\u274C';
 		parts.push(`<div class="nyrve-vr-heal-attempt">`);
 		parts.push(`<strong>${resultIcon} ${localize('nyrve.verification.attempt', "Attempt {0}", attempt.attemptNumber)}</strong>`);
 
 		if (attempt.failures.length > 0) {
 			parts.push(`<div class="nyrve-vr-heal-failures">`);
 			for (const failure of attempt.failures) {
-				parts.push(`<div>❌ ${failure.type}: ${failure.message}</div>`);
+				parts.push(`<div>\u274C ${failure.type}: ${failure.message}</div>`);
 			}
 			parts.push(`</div>`);
 		}
@@ -165,7 +165,7 @@ export function renderSelfHealHistory(attempts: VerificationAttempt[]): string {
 		if (attempt.fixesApplied.length > 0) {
 			parts.push(`<div class="nyrve-vr-heal-fixes">`);
 			for (const fix of attempt.fixesApplied) {
-				parts.push(`<div>🔧 ${fix.fixDescription}</div>`);
+				parts.push(`<div>\u{1F527} ${fix.fixDescription}</div>`);
 			}
 			parts.push(`</div>`);
 		}
@@ -188,7 +188,7 @@ function renderDiagnosticRow(diag: TypeDiagnostic): string {
 }
 
 function renderTestCaseRow(test: TestCase): string {
-	const statusIcon = test.status === 'passed' ? '✅' : test.status === 'failed' ? '❌' : '⏭';
+	const statusIcon = test.status === 'passed' ? '\u2705' : test.status === 'failed' ? '\u274C' : '\u23ED';
 	return `<div class="nyrve-vr-test-case">` +
 		`${statusIcon} <span class="nyrve-vr-test-name">${test.name}</span>` +
 		(test.errorMessage ? `<div class="nyrve-vr-test-error">${test.errorMessage}</div>` : '') +
