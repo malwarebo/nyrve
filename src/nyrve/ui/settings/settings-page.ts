@@ -5,10 +5,12 @@
 
 import { Disposable, DisposableStore } from '../../../vs/base/common/lifecycle.js';
 import { Emitter } from '../../../vs/base/common/event.js';
+import { generateUuid } from '../../../vs/base/common/uuid.js';
 import { localize2 } from '../../../vs/nls.js';
 import { Action2, registerAction2 } from '../../../vs/platform/actions/common/actions.js';
 import type { ServicesAccessor } from '../../../vs/platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../vs/platform/log/common/log.js';
+import { IWebviewWorkbenchService } from '../../../vs/workbench/contrib/webviewPanel/browser/webviewWorkbenchService.js';
 import { INyrveSettingsService } from '../../core/settings-service.js';
 import { INyrveAuthService, ConnectionStatus } from '../../core/auth-service.js';
 import { INyrveTokenTracker, TokenUsageSummary } from '../../agent/token-tracker.js';
@@ -571,6 +573,7 @@ export function createSettingsPageContent(nonce: string): string {
 // --- Command Registration ---
 
 const NYRVE_SETTINGS_CATEGORY = localize2('nyrve.settings.category', "Nyrve");
+const NYRVE_SETTINGS_VIEW_TYPE = 'nyrve.settingsEditor';
 
 registerAction2(class OpenNyrveSettingsAction extends Action2 {
 	constructor() {
@@ -580,10 +583,54 @@ registerAction2(class OpenNyrveSettingsAction extends Action2 {
 			category: NYRVE_SETTINGS_CATEGORY,
 		});
 	}
-	async run(_accessor: ServicesAccessor): Promise<void> {
-		// TODO: Open the settings webview editor tab.
-		// For now, this command is registered as a placeholder.
-		// The webview editor provider will be wired when the full
-		// webview panel infrastructure is connected.
+	async run(accessor: ServicesAccessor): Promise<void> {
+		const webviewService = accessor.get(IWebviewWorkbenchService);
+		const settingsService = accessor.get(INyrveSettingsService);
+		const authService = accessor.get(INyrveAuthService);
+		const tokenTracker = accessor.get(INyrveTokenTracker);
+		const logService = accessor.get(ILogService);
+
+		const nonce = generateUuid();
+		const html = createSettingsPageContent(nonce);
+
+		const webviewInput = webviewService.openWebview(
+			{
+				providedViewType: NYRVE_SETTINGS_VIEW_TYPE,
+				title: 'Nyrve Settings',
+				options: { retainContextWhenHidden: true },
+				contentOptions: { allowScripts: true },
+				extension: undefined,
+			},
+			NYRVE_SETTINGS_VIEW_TYPE,
+			'Nyrve Settings',
+			undefined,
+			{},
+		);
+
+		webviewInput.webview.setHtml(html);
+
+		const controller = new NyrveSettingsPageController(
+			settingsService,
+			authService,
+			tokenTracker,
+			logService,
+		);
+
+		const pushState = () => {
+			const state = controller.getState();
+			webviewInput.webview.postMessage({
+				type: 'stateUpdate',
+				...state,
+			});
+		};
+
+		controller.onDidChangeState(() => pushState());
+
+		webviewInput.webview.onMessage(e => {
+			controller.handleMessage(e.message as SettingsMessage);
+		});
+
+		// Push initial state once webview is ready
+		pushState();
 	}
 });

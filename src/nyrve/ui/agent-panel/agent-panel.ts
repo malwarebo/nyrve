@@ -14,6 +14,7 @@ import { IHoverService } from '../../../vs/platform/hover/browser/hover.js';
 import { SyncDescriptor } from '../../../vs/platform/instantiation/common/descriptors.js';
 import { IInstantiationService } from '../../../vs/platform/instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../../vs/platform/keybinding/common/keybinding.js';
+import { ICommandService } from '../../../vs/platform/commands/common/commands.js';
 import { IOpenerService } from '../../../vs/platform/opener/common/opener.js';
 import { Registry } from '../../../vs/platform/registry/common/platform.js';
 import { registerIcon } from '../../../vs/platform/theme/common/iconRegistry.js';
@@ -59,6 +60,7 @@ export class NyrveAgentViewPane extends ViewPane {
 		@IOpenerService openerService: IOpenerService,
 		@IThemeService themeService: IThemeService,
 		@IHoverService hoverService: IHoverService,
+		@ICommandService private readonly commandService: ICommandService,
 		@INyrveAgentService private readonly agentService: INyrveAgentService,
 		@INyrveModelRouter private readonly modelRouter: INyrveModelRouter,
 		@INyrveTokenTracker private readonly tokenTracker: INyrveTokenTracker,
@@ -110,8 +112,10 @@ export class NyrveAgentViewPane extends ViewPane {
 			this.agentService.setActiveModel(model);
 		}));
 		this._register(this.panelHeader.onDidClickClose(() => {
-			// Close the panel by toggling visibility
 			this.setExpanded(false);
+		}));
+		this._register(this.panelHeader.onDidClickSettings(() => {
+			this.commandService.executeCommand('nyrve.openSettings');
 		}));
 
 		// --- Content area (welcome state + messages) ---
