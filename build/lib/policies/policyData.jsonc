@@ -125,7 +125,7 @@
                     },
                     {
                         "key": "chat.mcp.access.registry",
-                        "value": "Allows access to MCP servers installed from the registry that Forge is connected to."
+                        "value": "Allows access to MCP servers installed from the registry that Nyrve is connected to."
                     },
                     {
                         "key": "chat.mcp.access.any",

@@ -15,7 +15,7 @@ import './browser/terminalView.js';
 // primary workbench contribution)
 import '../terminalContrib/accessibility/browser/terminal.accessibility.contribution.js';
 import '../terminalContrib/autoReplies/browser/terminal.autoReplies.contribution.js';
-// [Forge] Terminal chat features loaded for service deps; UI hidden at runtime
+// [Nyrve] Terminal chat features loaded for service deps; UI hidden at runtime
 import '../terminalContrib/chatAgentTools/browser/terminal.chatAgentTools.contribution.js';
 import '../terminalContrib/developer/browser/terminal.developer.contribution.js';
 import '../terminalContrib/environmentChanges/browser/terminal.environmentChanges.contribution.js';

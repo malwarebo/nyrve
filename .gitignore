@@ -31,10 +31,10 @@ test/componentFixtures/.screenshots/*
 dist
 .playwright-cli
 
-# Forge runtime data (per-project, generated at runtime)
-.forge/index.db
-.forge/memory.db
-.forge/tasks.db
+# Nyrve runtime data (per-project, generated at runtime)
+.nyrve/index.db
+.nyrve/memory.db
+.nyrve/tasks.db
 .agents/agents/*.local.md
 .claude/agents/*.local.md
 .github/agents/*.local.md

@@ -3,10 +3,10 @@ Version:  @@VERSION@@
 Release:  @@RELEASE@@.el8
 Summary:  AI-native code editor.
 Group:    Development/Tools
-Vendor:   Forge contributors
-Packager: Forge contributors <forge@malwarebo.com>
+Vendor:   Nyrve contributors
+Packager: Nyrve contributors <nyrve@malwarebo.com>
 License:  @@LICENSE@@
-URL:      https://github.com/malwarebo/forge
+URL:      https://github.com/malwarebo/nyrve
 Icon:     @@NAME@@.xpm
 Requires: @@DEPENDENCIES@@
 AutoReq:  0
@@ -17,7 +17,7 @@ AutoReq:  0
 %global __brp_strip_comment_note %{nil}
 
 %description
-Forge is an AI-native code editor with Claude deeply integrated into every layer. Autonomous multi-file edits, background monitoring, and persistent project memory. See https://github.com/malwarebo/forge for details.
+Nyrve is an AI-native code editor with Claude deeply integrated into every layer. Autonomous multi-file edits, background monitoring, and persistent project memory. See https://github.com/malwarebo/nyrve for details.
 
 # Don't generate build_id links to prevent conflicts when installing multiple
 # versions alongside each other

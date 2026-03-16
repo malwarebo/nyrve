@@ -1,22 +1,22 @@
-# Contributing to Forge
+# Contributing to Nyrve
 
-Welcome, and thank you for your interest in contributing to Forge!
+Welcome, and thank you for your interest in contributing to Nyrve!
 
-Forge is an AI-native code editor built as a fork of VS Code. There are several ways in which you can contribute, beyond writing code. The goal of this document is to provide a high-level overview of how you can get involved.
+Nyrve is an AI-native code editor built as a fork of VS Code. There are several ways in which you can contribute, beyond writing code. The goal of this document is to provide a high-level overview of how you can get involved.
 
 ## Asking Questions
 
-Have a question? Instead of opening an issue, please start a [discussion](https://github.com/malwarebo/forge/discussions) on GitHub.
+Have a question? Instead of opening an issue, please start a [discussion](https://github.com/malwarebo/nyrve/discussions) on GitHub.
 
 Your well-worded question will serve as a resource to others searching for help.
 
 ## Reporting Issues
 
-Have you identified a reproducible problem in Forge? Do you have a feature request? We want to hear about it! Here's how you can report your issue as effectively as possible.
+Have you identified a reproducible problem in Nyrve? Do you have a feature request? We want to hear about it! Here's how you can report your issue as effectively as possible.
 
 ### Look For an Existing Issue
 
-Before you create a new issue, please do a search in [open issues](https://github.com/malwarebo/forge/issues) to see if the issue or feature request has already been filed.
+Before you create a new issue, please do a search in [open issues](https://github.com/malwarebo/nyrve/issues) to see if the issue or feature request has already been filed.
 
 If you find your issue already exists, make relevant comments and add your [reaction](https://github.com/blog/2119-add-reactions-to-pull-requests-issues-and-comments). Use a reaction in place of a "+1" comment:
 
@@ -33,7 +33,7 @@ The more information you can provide, the more likely someone will be successful
 
 Please include the following with each issue:
 
-* Version of Forge
+* Version of Nyrve
 * Your operating system
 * List of extensions that you have installed
 * Reproducible steps (1... 2... 3...) that cause the issue
@@ -63,8 +63,8 @@ If you are interested in writing code to fix issues or add features:
 ### Development Setup
 
 ```bash
-git clone https://github.com/malwarebo/forge.git
-cd forge
+git clone https://github.com/malwarebo/nyrve.git
+cd nyrve
 npm install
 npm run watch
 ./scripts/code.sh
@@ -75,12 +75,12 @@ npm run watch
 - Use tabs, not spaces
 - PascalCase for types and enum values
 - camelCase for functions, methods, properties, local variables
-- All Forge-specific code goes in `src/forge/`
+- All Nyrve-specific code goes in `src/nyrve/`
 - Follow existing patterns in the codebase
 
 ## License
 
-By contributing to Forge, you agree that your contributions will be licensed under the [MIT License](LICENSE.txt).
+By contributing to Nyrve, you agree that your contributions will be licensed under the [MIT License](LICENSE.txt).
 
 ## Thank You
 

@@ -30,17 +30,17 @@ if [ "@@NAME@@" != "code-oss" ]; then
 
 	# Register apt repository
 	eval $(apt-config shell APT_SOURCE_PARTS Dir::Etc::sourceparts/d)
-	CODE_SOURCE_PART=${APT_SOURCE_PARTS}forge.list
-	CODE_SOURCE_PART_DEB822=${APT_SOURCE_PARTS}forge.sources
+	CODE_SOURCE_PART=${APT_SOURCE_PARTS}nyrve.list
+	CODE_SOURCE_PART_DEB822=${APT_SOURCE_PARTS}nyrve.sources
 
-	CODE_TRUSTED_PART=/usr/share/keyrings/forge.gpg
-	CODE_TRUSTED_PART_OLD="/etc/apt/trusted.gpg.d/forge.gpg"
+	CODE_TRUSTED_PART=/usr/share/keyrings/nyrve.gpg
+	CODE_TRUSTED_PART_OLD="/etc/apt/trusted.gpg.d/nyrve.gpg"
 
 	# RET seems to be true by default even after db_get is called on a first install.
 	RET='true'
 	if [ -e '/usr/share/debconf/confmodule' ]; then
 		. /usr/share/debconf/confmodule
-		db_get @@NAME@@/add-forge-repo || true
+		db_get @@NAME@@/add-nyrve-repo || true
 	fi
 
 	# Determine whether to write the Microsoft repository source list
@@ -68,10 +68,10 @@ if [ "@@NAME@@" != "code-oss" ]; then
 			WRITE_SOURCE='yes'
 		elif [ -e '/usr/share/debconf/confmodule' ]; then
 			# Ask the user whether to actually write the source list
-			db_input high @@NAME@@/add-forge-repo || true
+			db_input high @@NAME@@/add-nyrve-repo || true
 			db_go || true
 
-			db_get @@NAME@@/add-forge-repo
+			db_get @@NAME@@/add-nyrve-repo
 			if [ "$RET" = false ]; then
 				WRITE_SOURCE='no'
 			else

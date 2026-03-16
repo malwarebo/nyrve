@@ -18,14 +18,14 @@ fi
 RET=true
 if [ -e '/usr/share/debconf/confmodule' ]; then
 	. /usr/share/debconf/confmodule
-	db_get @@NAME@@/add-forge-repo || true
+	db_get @@NAME@@/add-nyrve-repo || true
 fi
 if [ "$RET" = "true" ]; then
 	eval $(apt-config shell APT_SOURCE_PARTS Dir::Etc::sourceparts/d)
-	CODE_SOURCE_PART=${APT_SOURCE_PARTS}forge.sources
+	CODE_SOURCE_PART=${APT_SOURCE_PARTS}nyrve.sources
 	rm -f $CODE_SOURCE_PART
 
-	CODE_TRUSTED_PART=/usr/share/keyrings/forge.gpg
+	CODE_TRUSTED_PART=/usr/share/keyrings/nyrve.gpg
 	rm -f $CODE_TRUSTED_PART
 fi
 

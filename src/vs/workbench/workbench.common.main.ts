@@ -206,8 +206,8 @@ import './contrib/notebook/browser/notebook.contribution.js';
 // Speech
 import './contrib/speech/browser/speech.contribution.js';
 
-// Chat — [Forge] Services are loaded (required by tasks, debug, notebooks, MCP).
-// The Forge Agent Panel replaces the chat UI; see forge-disable-native-ai.ts for runtime deregistration.
+// Chat — [Nyrve] Services are loaded (required by tasks, debug, notebooks, MCP).
+// The Nyrve Agent Panel replaces the chat UI; see nyrve-disable-native-ai.ts for runtime deregistration.
 import './contrib/chat/browser/chat.contribution.js';
 import './contrib/inlineChat/browser/inlineChat.contribution.js';
 import './contrib/mcp/browser/mcp.contribution.js';
@@ -443,7 +443,7 @@ import './contrib/editTelemetry/browser/editTelemetry.contribution.js';
 // Opener
 import './contrib/opener/browser/opener.contribution.js';
 
-// Forge — AI-native agent integration
-import '../../forge/forge.contribution.js';
+// Nyrve — AI-native agent integration
+import '../../nyrve/nyrve.contribution.js';
 
 //#endregion

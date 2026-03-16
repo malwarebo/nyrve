@@ -1,18 +1,18 @@
 {
-	"name": "Forge",
-	"short_name": "Forge",
+	"name": "Nyrve",
+	"short_name": "Nyrve",
 	"start_url": "/",
 	"lang": "en-US",
 	"display": "standalone",
 	"display_override": ["window-controls-overlay"],
 	"icons": [
 		{
-			"src": "forge-192.png",
+			"src": "nyrve-192.png",
 			"type": "image/png",
 			"sizes": "192x192"
 		},
 		{
-			"src": "forge-512.png",
+			"src": "nyrve-512.png",
 			"type": "image/png",
 			"sizes": "512x512"
 		}

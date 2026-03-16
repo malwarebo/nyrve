@@ -65,7 +65,7 @@ async function queryVersions(serviceUrl: string, languageId: string): Promise<Ve
 		headers: {
 			'Accept': 'application/json;api-version=3.0-preview.1',
 			'Content-Type': 'application/json',
-			'User-Agent': 'Forge Build',
+			'User-Agent': 'Nyrve Build',
 		},
 		body: JSON.stringify({
 			filters: [{ criteria: [{ filterType: 7, value: `ms-ceintl.vscode-language-pack-${languageId}` }] }],

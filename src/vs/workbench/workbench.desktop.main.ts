@@ -176,7 +176,7 @@ import './contrib/multiDiffEditor/browser/multiDiffEditor.contribution.js';
 // Remote Tunnel
 import './contrib/remoteTunnel/electron-browser/remoteTunnel.contribution.js';
 
-// Chat — [Forge] Electron-specific chat (services only; UI hidden at runtime)
+// Chat — [Nyrve] Electron-specific chat (services only; UI hidden at runtime)
 import './contrib/chat/electron-browser/chat.contribution.js';
 
 // Encryption

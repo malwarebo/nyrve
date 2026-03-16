@@ -158,20 +158,20 @@ async function main(buildDir?: string, outDir?: string): Promise<void> {
 	const appRoot = path.join(buildDir, `VSCode-darwin-${arch}`);
 	const appName = product.nameLong + '.app';
 	const appPath = path.join(appRoot, appName);
-	const dmgName = `Forge-darwin-${arch}`;
+	const dmgName = `Nyrve-darwin-${arch}`;
 	const artifactPath = path.join(outDir, `${dmgName}.dmg`);
 	const backgroundPath = path.join(import.meta.dirname, `dmg-background-${quality}.tiff`);
-	const diskIconPath = path.join(root, 'resources', 'darwin', 'forge.icns');
-	let title = 'Forge';
+	const diskIconPath = path.join(root, 'resources', 'darwin', 'nyrve.icns');
+	let title = 'Nyrve';
 	switch (quality) {
 		case 'stable':
-			title = 'Forge';
+			title = 'Nyrve';
 			break;
 		case 'insider':
-			title = 'Forge Insiders';
+			title = 'Nyrve Insiders';
 			break;
 		case 'exploration':
-			title = 'Forge Exploration';
+			title = 'Nyrve Exploration';
 			break;
 	}
 

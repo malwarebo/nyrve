@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="resources/forge/logo/forge-readme.svg" alt="Forge" width="420" />
+  <img src="resources/nyrve/logo/nyrve-readme.svg" alt="Nyrve" width="420" />
 </p>
 
 <p align="center">
@@ -8,19 +8,19 @@
 
 ---
 
-Forge is a VS Code fork with Claude baked directly into the editor. Not as an extension. Not as a sidebar chat. As a core part of how the editor works. The agent runs inside the editor with full access to your files, terminal, and git. Every change it makes is type-checked, tested, and verified before you see it.
+Nyrve is a VS Code fork with Claude baked directly into the editor. Not as an extension. Not as a sidebar chat. As a core part of how the editor works. The agent runs inside the editor with full access to your files, terminal, and git. Every change it makes is type-checked, tested, and verified before you see it.
 
-## What makes Forge different
+## What makes Nyrve different
 
-**The agent verifies its own output and fixes its own mistakes.** When Forge modifies your code, it runs the type checker, executes relevant tests, checks coverage, and validates imports. Automatically, before showing you a single diff. If something breaks, the agent enters a self-healing loop: it reads the failure, fixes the code, and re-verifies, up to three attempts. By the time you review the changes, they've already been tested and repaired. You see the diffs alongside a verification report: what passed, what was caught and self-healed, and what percentage of changed lines are covered by tests. This is not a gimmick. It changes how much you trust AI-generated code.
+**The agent verifies its own output and fixes its own mistakes.** When Nyrve modifies your code, it runs the type checker, executes relevant tests, checks coverage, and validates imports. Automatically, before showing you a single diff. If something breaks, the agent enters a self-healing loop: it reads the failure, fixes the code, and re-verifies, up to three attempts. By the time you review the changes, they've already been tested and repaired. You see the diffs alongside a verification report: what passed, what was caught and self-healed, and what percentage of changed lines are covered by tests. This is not a gimmick. It changes how much you trust AI-generated code.
 
-**The agent builds a DNA profile of your project.** On first open, Forge scans your code, config files, and git history to build a structured Project DNA: your tech stack, architecture, module map, code patterns, naming conventions, file hotspots, contributor activity, and technical debt. This DNA updates incrementally as you work. The agent uses it on every request, so it follows your project's patterns without being told. It also captures architectural decisions from your conversations into a searchable Decision Journal, and maintains a shared Team Knowledge file you commit to your repo. After a week, the agent codes like someone who's read every file. After a month, it knows your project better than most of your team. This compounds. It does not reset between sessions.
+**The agent builds a DNA profile of your project.** On first open, Nyrve scans your code, config files, and git history to build a structured Project DNA: your tech stack, architecture, module map, code patterns, naming conventions, file hotspots, contributor activity, and technical debt. This DNA updates incrementally as you work. The agent uses it on every request, so it follows your project's patterns without being told. It also captures architectural decisions from your conversations into a searchable Decision Journal, and maintains a shared Team Knowledge file you commit to your repo. After a week, the agent codes like someone who's read every file. After a month, it knows your project better than most of your team. This compounds. It does not reset between sessions.
 
 **Plan before execute.** For complex changes, the agent creates a step-by-step implementation plan before writing any code. You review the plan, edit steps, reorder them, add constraints. Then the agent executes each step with verification. You stay in control of the approach while the agent handles the implementation.
 
 ## Core capabilities
 
-Forge ships with everything you need to use it as your primary editor:
+Nyrve ships with everything you need to use it as your primary editor:
 
 **Inline completions.** Ghost text appears as you type, powered by Claude Haiku for speed. Completions are aware of your project's conventions and pass a quick type check before they appear. Tab to accept. Under 300ms latency.
 
@@ -42,16 +42,16 @@ Forge ships with everything you need to use it as your primary editor:
 
 ## The model
 
-Forge uses the Anthropic API directly. You bring your own API key and pay Anthropic for usage. There is no Forge backend, no proxy, no account to create. Your key is stored in your OS keychain and never leaves your machine.
+Nyrve uses the Anthropic API directly. You bring your own API key and pay Anthropic for usage. There is no Nyrve backend, no proxy, no account to create. Your key is stored in your OS keychain and never leaves your machine.
 
-All Claude models are supported. Forge routes tasks to the right model by default: Haiku for completions and background analysis, Sonnet for general work, Opus for complex planning and multi-file edits. You can override this per feature.
+All Claude models are supported. Nyrve routes tasks to the right model by default: Haiku for completions and background analysis, Sonnet for general work, Opus for complex planning and multi-file edits. You can override this per feature.
 
 ## Quick start
 
 ```bash
 # Clone the repo
-git clone https://github.com/malwarebo/forge.git
-cd forge
+git clone https://github.com/malwarebo/nyrve.git
+cd nyrve
 
 # Install dependencies
 npm install
@@ -63,11 +63,11 @@ npm run compile
 ./scripts/code.sh
 ```
 
-On first launch, Forge will ask for your Anthropic API key. Get one at [console.anthropic.com](https://console.anthropic.com).
+On first launch, Nyrve will ask for your Anthropic API key. Get one at [console.anthropic.com](https://console.anthropic.com).
 
 ## Configuration
 
-Forge has a dedicated settings page (`Forge > Settings` or `Cmd+Shift+A` → gear icon) covering:
+Nyrve has a dedicated settings page (`Nyrve > Settings` or `Cmd+Shift+A` → gear icon) covering:
 
 - **Models** — Choose which Claude model to use for each feature
 - **Agent** — Confirmation level (cautious / balanced / autonomous), custom system prompt
@@ -78,14 +78,14 @@ Forge has a dedicated settings page (`Forge > Settings` or `Cmd+Shift+A` → gea
 - **Vision** — Screenshot capture, compression, EXIF stripping
 - **Background Agent** — Mode (active / on-save / on-commit), categories, token budget
 
-Per-project overrides via `.forge/config.json`. Global settings at `~/.forge/settings.json`.
+Per-project overrides via `.nyrve/config.json`. Global settings at `~/.nyrve/settings.json`.
 
 ## Project files
 
-Forge stores project-specific data in `.forge/` at your workspace root:
+Nyrve stores project-specific data in `.nyrve/` at your workspace root:
 
 ```
-.forge/
+.nyrve/
 ├── config.json            # Project settings (overrides global)
 ├── team-knowledge.md      # Shared knowledge base (commit this)
 ├── mentions.json          # Custom @-mention definitions
@@ -101,7 +101,7 @@ Forge stores project-specific data in `.forge/` at your workspace root:
 
 ## Built on VS Code
 
-Forge is a fork of [VS Code](https://github.com/microsoft/vscode). All VS Code extensions, themes, keybindings, and settings work. If you use VS Code today, Forge feels familiar on day one. The difference is everything behind the `src/forge/` directory: the agent, the verification engine, the memory system, and every integration point between them.
+Nyrve is a fork of [VS Code](https://github.com/microsoft/vscode). All VS Code extensions, themes, keybindings, and settings work. If you use VS Code today, Nyrve feels familiar on day one. The difference is everything behind the `src/nyrve/` directory: the agent, the verification engine, the memory system, and every integration point between them.
 
 ## Requirements
 

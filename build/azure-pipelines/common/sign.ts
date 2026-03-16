@@ -48,8 +48,8 @@ function getParams(type: string): Params[] {
 					keyCode: 'CP-230012',
 					operationSetCode: 'SigntoolSign',
 					parameters: [
-						{ parameterName: 'OpusName', parameterValue: 'Forge' },
-						{ parameterName: 'OpusInfo', parameterValue: 'https://github.com/malwarebo/forge' },
+						{ parameterName: 'OpusName', parameterValue: 'Nyrve' },
+						{ parameterName: 'OpusInfo', parameterValue: 'https://github.com/malwarebo/nyrve' },
 						{ parameterName: 'Append', parameterValue: '/as' },
 						{ parameterName: 'FileDigest', parameterValue: '/fd "SHA256"' },
 						{ parameterName: 'PageHash', parameterValue: '/NPH' },
@@ -74,8 +74,8 @@ function getParams(type: string): Params[] {
 					keyCode: 'CP-229979',
 					operationSetCode: 'SigntoolSign',
 					parameters: [
-						{ parameterName: 'OpusName', parameterValue: 'Forge' },
-						{ parameterName: 'OpusInfo', parameterValue: 'https://github.com/malwarebo/forge' },
+						{ parameterName: 'OpusName', parameterValue: 'Nyrve' },
+						{ parameterName: 'OpusInfo', parameterValue: 'https://github.com/malwarebo/nyrve' },
 						{ parameterName: 'FileDigest', parameterValue: '/fd "SHA256"' },
 						{ parameterName: 'PageHash', parameterValue: '/NPH' },
 						{ parameterName: 'TimeStamp', parameterValue: '/tr "http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer" /td sha256' }

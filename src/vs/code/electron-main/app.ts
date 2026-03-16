@@ -548,15 +548,15 @@ export class CodeApplication extends Disposable {
 	}
 
 	async startup(): Promise<void> {
-		this.logService.debug('Starting Forge');
+		this.logService.debug('Starting Nyrve');
 		this.logService.debug(`from: ${this.environmentMainService.appRoot}`);
 		this.logService.debug('args:', this.environmentMainService.args);
 
-		// Set the dock icon on macOS programmatically to ensure the Forge
+		// Set the dock icon on macOS programmatically to ensure the Nyrve
 		// icon is shown even when macOS icon caches are stale
 		if (isMacintosh && app.dock) {
 			try {
-				const icnsPath = join(this.environmentMainService.appRoot, 'resources', 'darwin', 'forge.icns');
+				const icnsPath = join(this.environmentMainService.appRoot, 'resources', 'darwin', 'nyrve.icns');
 				const icon = nativeImage.createFromPath(icnsPath);
 				if (!icon.isEmpty()) {
 					app.dock.setIcon(icon);

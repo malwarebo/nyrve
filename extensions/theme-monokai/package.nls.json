@@ -1,5 +1,12 @@
-{
-	"displayName": "Monokai Theme",
-	"description": "Monokai theme for Forge",
-	"themeLabel": "Monokai"
-}
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+	<id>@@NAME@@.desktop</id>
+	<metadata_license>@@LICENSE@@</metadata_license>
+	<project_license>@@LICENSE@@</project_license>
+	<name>@@NAME_LONG@@</name>
+	<url type="homepage">https://github.com/malwarebo/nyrve</url>
+	<summary>Nyrve. AI-native code editor.</summary>
+	<description>
+		<p>Nyrve is an AI-native code editor with Claude deeply integrated into every layer. Autonomous multi-file edits, background monitoring, and persistent project memory.</p>
+	</description>
+</component>

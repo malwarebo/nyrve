@@ -24,7 +24,7 @@ jobs:
             artifactName: vscode_cli_win32_$(VSCODE_ARCH)_cli
             displayName: Publish vscode_cli_win32_$(VSCODE_ARCH)_cli artifact
             sbomBuildDropPath: $(Build.ArtifactStagingDirectory)/sign
-            sbomPackageName: "Forge Windows $(VSCODE_ARCH) CLI"
+            sbomPackageName: "Nyrve Windows $(VSCODE_ARCH) CLI"
             sbomPackageVersion: $(Build.SourceVersion)
 
     steps:
