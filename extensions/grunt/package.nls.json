@@ -1,6 +1,6 @@
 {
-	"description": "Extension to add Grunt capabilities to Forge.",
-	"displayName": "Grunt support for Forge",
+	"description": "Extension to add Grunt capabilities to Nyrve.",
+	"displayName": "Grunt support for Nyrve",
 	"config.grunt.autoDetect": "Controls enablement of Grunt task detection. Grunt task detection can cause files in any open workspace to be executed.",
 	"grunt.taskDefinition.type.description": "The Grunt task to customize.",
 	"grunt.taskDefinition.args.description": "Command line arguments to pass to the grunt task",

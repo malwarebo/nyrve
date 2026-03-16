@@ -1,9 +1,9 @@
 {
-  "name": "forge-editor",
+  "name": "nyrve-editor",
   "version": "0.1.0",
   "distro": "2e74305a6fb0a094a3797324d58940dda3d161ff",
   "author": {
-    "name": "Forge contributors"
+    "name": "Nyrve contributors"
   },
   "license": "MIT",
   "main": "./out/main.js",
@@ -239,10 +239,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/malwarebo/forge.git"
+    "url": "https://github.com/malwarebo/nyrve.git"
   },
   "bugs": {
-    "url": "https://github.com/malwarebo/forge/issues"
+    "url": "https://github.com/malwarebo/nyrve/issues"
   },
   "optionalDependencies": {
     "windows-foreground-love": "0.6.1"

@@ -477,7 +477,7 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 			all = es.merge(all, gulp.src([
 				'resources/win32/bower.ico',
 				'resources/win32/c.ico',
-				'resources/win32/forge.ico',
+				'resources/win32/nyrve.ico',
 				'resources/win32/config.ico',
 				'resources/win32/cpp.ico',
 				'resources/win32/csharp.ico',
@@ -512,7 +512,7 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 		} else if (platform === 'linux') {
 			const policyDest = gulp.src('.build/policies/linux/**', { base: '.build/policies/linux' })
 				.pipe(rename(f => f.dirname = `policies/${f.dirname}`));
-			all = es.merge(all, gulp.src('resources/linux/forge.png', { base: '.' }), policyDest);
+			all = es.merge(all, gulp.src('resources/linux/nyrve.png', { base: '.' }), policyDest);
 		} else if (platform === 'darwin') {
 			const shortcut = gulp.src('resources/darwin/bin/code.sh')
 				.pipe(replace('@@APPNAME@@', product.applicationName))
@@ -664,11 +664,11 @@ function patchWin32DependenciesTask(destinationFolderName: string) {
 			await rcedit(path.join(cwd, dep), {
 				'file-version': baseVersion,
 				'version-string': {
-				'CompanyName': 'Forge contributors',
+				'CompanyName': 'Nyrve contributors',
 				'FileDescription': product.nameLong,
 				'FileVersion': packageJson.version,
 				'InternalName': basename,
-				'LegalCopyright': 'Copyright (C) 2026 Forge contributors. All rights reserved',
+				'LegalCopyright': 'Copyright (C) 2026 Nyrve contributors. All rights reserved',
 					'OriginalFilename': basename,
 					'ProductName': product.nameLong,
 					'ProductVersion': packageJson.version,

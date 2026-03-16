@@ -176,10 +176,10 @@ export function defaultBrowserWindowOptions(accessor: ServicesAccessor, windowSt
 	}
 
 	if (isLinux) {
-		options.icon = join(environmentMainService.appRoot, 'resources/linux/forge.png');
+		options.icon = join(environmentMainService.appRoot, 'resources/linux/nyrve.png');
 	} else if (isWindows) {
 		if (!environmentMainService.isBuilt) {
-			options.icon = join(environmentMainService.appRoot, 'resources/win32/forge_150x150.png');
+			options.icon = join(environmentMainService.appRoot, 'resources/win32/nyrve_150x150.png');
 		} else if ((process as INodeProcess).isEmbeddedApp) {
 			// For sub app the proxy executable acts as a launcher to the main executable whose
 			// icon will be used when creating windows if the following override is not set.

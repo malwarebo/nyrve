@@ -62,15 +62,15 @@ else {
 	if (Object.keys(product).length === 0) {
 		Object.assign(product, {
 			version: '0.1.0-dev',
-			nameShort: 'Forge Dev',
-			nameLong: 'Forge - AI-Native Code Editor Dev',
-			applicationName: 'forge',
-			dataFolderName: '.forge-ide',
-			urlProtocol: 'forge',
-			reportIssueUrl: 'https://github.com/malwarebo/forge/issues/new',
+			nameShort: 'Nyrve Dev',
+			nameLong: 'Nyrve - AI-Native Code Editor Dev',
+			applicationName: 'nyrve',
+			dataFolderName: '.nyrve-ide',
+			urlProtocol: 'nyrve',
+			reportIssueUrl: 'https://github.com/malwarebo/nyrve/issues/new',
 			licenseName: 'MIT',
-			licenseUrl: 'https://github.com/malwarebo/forge/blob/main/LICENSE.txt',
-			serverLicenseUrl: 'https://github.com/malwarebo/forge/blob/main/LICENSE.txt',
+			licenseUrl: 'https://github.com/malwarebo/nyrve/blob/main/LICENSE.txt',
+			serverLicenseUrl: 'https://github.com/malwarebo/nyrve/blob/main/LICENSE.txt',
 		});
 	}
 }

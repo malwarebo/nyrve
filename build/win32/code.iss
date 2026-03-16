@@ -8,14 +8,14 @@
 AppId={#AppId}
 AppName={#NameLong}
 AppVerName={#NameVersion}
-AppPublisher=Forge contributors
-AppPublisherURL=https://github.com/malwarebo/forge
-AppSupportURL=https://github.com/malwarebo/forge
-AppUpdatesURL=https://github.com/malwarebo/forge
+AppPublisher=Nyrve contributors
+AppPublisherURL=https://github.com/malwarebo/nyrve
+AppSupportURL=https://github.com/malwarebo/nyrve
+AppUpdatesURL=https://github.com/malwarebo/nyrve
 DefaultGroupName={#NameLong}
 AllowNoIcons=yes
 OutputDir={#OutputDir}
-OutputBaseFilename=ForgeSetup
+OutputBaseFilename=NyrveSetup
 Compression=lzma
 SolidCompression=yes
 AppMutex={code:GetAppMutex}
@@ -1340,7 +1340,7 @@ begin
 
   #if "user" == InstallTarget
     if not WizardSilent() and IsAdmin() then begin
-      if MsgBox('This User Installer is not meant to be run as an Administrator. If you would like to install Forge for all users in this system, download the System Installer instead from https://github.com/malwarebo/forge. Are you sure you want to continue?', mbError, MB_OKCANCEL) = IDCANCEL then begin
+      if MsgBox('This User Installer is not meant to be run as an Administrator. If you would like to install Nyrve for all users in this system, download the System Installer instead from https://github.com/malwarebo/nyrve. Are you sure you want to continue?', mbError, MB_OKCANCEL) = IDCANCEL then begin
         Result := False;
       end;
     end;

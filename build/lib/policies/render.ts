@@ -165,7 +165,7 @@ export function renderProfileManifest(appName: string, bundleIdentifier: string,
 		</dict>
 		<dict>
 			<key>pfm_default</key>
-			<string>Forge</string>
+			<string>Nyrve</string>
 			<key>pfm_name</key>
 			<string>PayloadOrganization</string>
 			<key>pfm_title</key>
@@ -259,7 +259,7 @@ ${policyEntries}
 		<key>PayloadIdentifier</key>
 		<string>${bundleIdentifier}</string>
 		<key>PayloadOrganization</key>
-		<string>Forge</string>
+		<string>Nyrve</string>
 		<key>PayloadType</key>
 		<string>Configuration</string>
 		<key>PayloadUUID</key>

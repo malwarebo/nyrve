@@ -15,12 +15,12 @@
   IgnorableNamespaces="uap uap2 uap3 rescap desktop desktop4 desktop5 desktop6 desktop10 uap10 com">
   <Identity
     Name="@@AppxPackageName@@"
-    Publisher="CN=Forge contributors"
+    Publisher="CN=Nyrve contributors"
     Version="@@AppxPackageVersion@@"
     ProcessorArchitecture="neutral" />
   <Properties>
     <DisplayName>@@AppxPackageDisplayName@@</DisplayName>
-    <PublisherDisplayName>Forge contributors</PublisherDisplayName>
+    <PublisherDisplayName>Nyrve contributors</PublisherDisplayName>
     <Logo>resources\app\resources\win32\code_150x150.png</Logo>
     <uap10:AllowExternalContent>true</uap10:AllowExternalContent>
     <desktop6:RegistryWriteVirtualization>disabled</desktop6:RegistryWriteVirtualization>

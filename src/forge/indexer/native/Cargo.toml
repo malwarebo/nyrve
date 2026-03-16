@@ -1,9 +1,0 @@
-[package]
-name = "forge-indexer"
-version = "0.1.0"
-edition = "2021"
-license = "MIT"
-description = "Forge codebase indexer — Rust native addon"
-
-# Placeholder — dependencies will be added in Phase 4
-[dependencies]

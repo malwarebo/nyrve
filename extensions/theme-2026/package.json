@@ -15,13 +15,13 @@
 		"themes": [
 			{
 				"id": "Experimental Light",
-				"label": "Forge Light",
+				"label": "Nyrve Light",
 				"uiTheme": "vs",
 				"path": "./themes/2026-light.json"
 			},
 			{
 				"id": "Experimental Dark",
-				"label": "Forge Dark",
+				"label": "Nyrve Dark",
 				"uiTheme": "vs-dark",
 				"path": "./themes/2026-dark.json"
 			}

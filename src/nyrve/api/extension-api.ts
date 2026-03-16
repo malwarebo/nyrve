@@ -1,0 +1,224 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Nyrve contributors. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { Disposable, IDisposable } from '../../vs/base/common/lifecycle.js';
+import { createDecorator } from '../../vs/platform/instantiation/common/instantiation.js';
+import { InstantiationType, registerSingleton } from '../../vs/platform/instantiation/common/extensions.js';
+import { ILogService } from '../../vs/platform/log/common/log.js';
+import { INyrveAgentService } from '../agent/agent-service.js';
+import { NyrveAgentResponse, NyrveMessage } from '../agent/agent-engine.js';
+import { INyrveBackgroundAgent, BackgroundSuggestion } from '../agent/background-agent.js';
+import { INyrveIndexManager } from '../indexer/index-manager.js';
+import { NyrveSymbol } from '../indexer/symbol-extractor.js';
+import { INyrveMemoryEngine, MemoryEntry } from '../memory/memory-engine.js';
+import { INyrveTaskQueue, Task, TaskCreateParams } from '../ui/task-queue/task-panel.js';
+import { ContextBlock } from '../context/context-builder.js';
+
+// --- Public API Types ---
+
+/**
+ * The public API surface exposed to third-party VS Code extensions
+ * via `vscode.extensions.getExtension('nyrve.nyrve-ide')?.exports`.
+ */
+export interface NyrveExtensionAPI {
+	readonly agent: NyrveAgentAPI;
+	readonly index: NyrveIndexAPI;
+	readonly memory: NyrveMemoryAPI;
+	readonly tasks: NyrveTasksAPI;
+}
+
+export interface NyrveAgentAPI {
+	/** Send a message to the agent and get a response. */
+	sendMessage(message: string, context?: ContextBlock[]): Promise<NyrveAgentResponse>;
+
+	/** Subscribe to background agent suggestions. */
+	onSuggestion(callback: (suggestion: BackgroundSuggestion) => void): IDisposable;
+
+	/** Register a custom context provider that supplies additional context. */
+	registerContextProvider(provider: NyrveContextProvider): IDisposable;
+
+	/** Get the current conversation messages. */
+	getMessages(): readonly NyrveMessage[];
+}
+
+export interface NyrveIndexAPI {
+	/** Search the codebase index by query. */
+	searchFiles(query: string, maxResults?: number): Promise<readonly string[]>;
+
+	/** Get a symbol by name. */
+	getSymbol(name: string): Promise<NyrveSymbol | undefined>;
+
+	/** Get all symbols in a file. */
+	getFileSymbols(filePath: string): Promise<readonly NyrveSymbol[]>;
+}
+
+export interface NyrveMemoryAPI {
+	/** Search memories by query text. */
+	search(query: string, topK?: number): Promise<readonly MemoryEntry[]>;
+
+	/** Add a new memory entry. */
+	add(content: string, tags?: string[]): Promise<string>;
+
+	/** Remove a memory entry by ID. */
+	remove(id: string): Promise<void>;
+}
+
+export interface NyrveTasksAPI {
+	/** Create a new task in the queue. */
+	create(params: TaskCreateParams): Promise<Task>;
+
+	/** List all tasks, optionally filtered. */
+	list(): Promise<readonly Task[]>;
+
+	/** Cancel a task. */
+	cancel(id: string): Promise<void>;
+
+	/** Subscribe to task status changes. */
+	onStatusChange(callback: (task: Task) => void): IDisposable;
+}
+
+/** Custom context provider that extensions can register. */
+export interface NyrveContextProvider {
+	readonly id: string;
+	readonly label: string;
+	provideContext(query: string): Promise<ContextBlock | undefined>;
+}
+
+// --- Service Interface ---
+
+export const INyrveExtensionAPI = createDecorator<INyrveExtensionAPI>('nyrveExtensionAPI');
+
+export interface INyrveExtensionAPI {
+	readonly _serviceBrand: undefined;
+
+	/** Get the public API object for extensions. */
+	getAPI(): NyrveExtensionAPI;
+
+	/** Register a custom context provider. */
+	registerContextProvider(provider: NyrveContextProvider): IDisposable;
+
+	/** Get all registered context providers. */
+	getContextProviders(): readonly NyrveContextProvider[];
+}
+
+// --- Service Implementation ---
+
+export class NyrveExtensionAPIService extends Disposable implements INyrveExtensionAPI {
+	declare readonly _serviceBrand: undefined;
+
+	private readonly _contextProviders = new Map<string, NyrveContextProvider>();
+	private _api: NyrveExtensionAPI | undefined;
+
+	constructor(
+		@INyrveAgentService private readonly agentService: INyrveAgentService,
+		@INyrveBackgroundAgent private readonly backgroundAgent: INyrveBackgroundAgent,
+		@INyrveIndexManager private readonly indexManager: INyrveIndexManager,
+		@INyrveMemoryEngine private readonly memoryEngine: INyrveMemoryEngine,
+		@INyrveTaskQueue private readonly taskQueue: INyrveTaskQueue,
+		@ILogService private readonly logService: ILogService,
+	) {
+		super();
+	}
+
+	getAPI(): NyrveExtensionAPI {
+		if (!this._api) {
+			this._api = this._createAPI();
+		}
+		return this._api;
+	}
+
+	registerContextProvider(provider: NyrveContextProvider): IDisposable {
+		if (this._contextProviders.has(provider.id)) {
+			this.logService.warn(`[Nyrve] Context provider '${provider.id}' already registered, replacing.`);
+		}
+		this._contextProviders.set(provider.id, provider);
+		this.logService.info(`[Nyrve] Registered context provider: ${provider.id}`);
+
+		return {
+			dispose: () => {
+				this._contextProviders.delete(provider.id);
+			}
+		};
+	}
+
+	getContextProviders(): readonly NyrveContextProvider[] {
+		return [...this._contextProviders.values()];
+	}
+
+	private _createAPI(): NyrveExtensionAPI {
+		const agentService = this.agentService;
+		const backgroundAgent = this.backgroundAgent;
+		const indexManager = this.indexManager;
+		const memoryEngine = this.memoryEngine;
+		const taskQueue = this.taskQueue;
+		const self = this;
+
+		return {
+			agent: {
+				async sendMessage(message: string): Promise<NyrveAgentResponse> {
+					return agentService.sendUserMessage(message);
+				},
+				onSuggestion(callback: (suggestion: BackgroundSuggestion) => void): IDisposable {
+					return backgroundAgent.onDidAddSuggestion(callback);
+				},
+				registerContextProvider(provider: NyrveContextProvider): IDisposable {
+					return self.registerContextProvider(provider);
+				},
+				getMessages(): readonly NyrveMessage[] {
+					return agentService.getConversation().messages;
+				},
+			},
+			index: {
+				async searchFiles(query: string, maxResults: number = 20): Promise<readonly string[]> {
+					const results = indexManager.searchFiles(query);
+					return results.slice(0, maxResults);
+				},
+				async getSymbol(name: string): Promise<NyrveSymbol | undefined> {
+					const symbols = indexManager.getFileSymbols(''); // search across all
+					return symbols.find(s => s.name === name);
+				},
+				async getFileSymbols(filePath: string): Promise<readonly NyrveSymbol[]> {
+					return indexManager.getFileSymbols(filePath);
+				},
+			},
+			memory: {
+				async search(query: string, topK: number = 10): Promise<readonly MemoryEntry[]> {
+					return memoryEngine.searchByContent(query).slice(0, topK);
+				},
+				async add(content: string, tags?: string[]): Promise<string> {
+					const entry = memoryEngine.addMemory({
+						type: 0 as never, // Will be classified
+						content,
+						embedding: [],
+						source: 0 as never,
+						tags: tags ?? [],
+						confidence: 0.8,
+						userVerified: false,
+					});
+					return entry.id;
+				},
+				async remove(id: string): Promise<void> {
+					memoryEngine.deleteMemory(id);
+				},
+			},
+			tasks: {
+				async create(params: TaskCreateParams): Promise<Task> {
+					return taskQueue.addTask(params);
+				},
+				async list(): Promise<readonly Task[]> {
+					return taskQueue.getTasks();
+				},
+				async cancel(id: string): Promise<void> {
+					taskQueue.cancelTask(id);
+				},
+				onStatusChange(callback: (task: Task) => void): IDisposable {
+					return taskQueue.onDidUpdateTask(callback);
+				},
+			},
+		};
+	}
+}
+
+registerSingleton(INyrveExtensionAPI, NyrveExtensionAPIService, InstantiationType.Delayed);

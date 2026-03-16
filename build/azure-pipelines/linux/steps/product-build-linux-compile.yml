@@ -214,7 +214,7 @@ steps:
         artifact: $(ARTIFACT_PREFIX)vscode_cli_linux_$(VSCODE_ARCH)_cli
         patterns: "**"
         path: $(Build.ArtifactStagingDirectory)/cli
-      displayName: Download Forge CLI
+      displayName: Download Nyrve CLI
 
     - script: |
         set -e

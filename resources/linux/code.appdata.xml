@@ -4,9 +4,9 @@
 	<metadata_license>@@LICENSE@@</metadata_license>
 	<project_license>@@LICENSE@@</project_license>
 	<name>@@NAME_LONG@@</name>
-	<url type="homepage">https://github.com/malwarebo/forge</url>
-	<summary>Forge. AI-native code editor.</summary>
+	<url type="homepage">https://github.com/malwarebo/nyrve</url>
+	<summary>Nyrve. AI-native code editor.</summary>
 	<description>
-		<p>Forge is an AI-native code editor with Claude deeply integrated into every layer. Autonomous multi-file edits, background monitoring, and persistent project memory.</p>
+		<p>Nyrve is an AI-native code editor with Claude deeply integrated into every layer. Autonomous multi-file edits, background monitoring, and persistent project memory.</p>
 	</description>
 </component>

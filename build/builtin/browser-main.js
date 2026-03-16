@@ -10,7 +10,7 @@ const os = require('os');
 const { ipcRenderer } = require('electron');
 
 const builtInExtensionsPath = path.join(__dirname, '..', '..', 'product.json');
-const controlFilePath = path.join(os.homedir(), '.forge-dev', 'extensions', 'control.json');
+const controlFilePath = path.join(os.homedir(), '.nyrve-dev', 'extensions', 'control.json');
 
 /**
  * @param {string} filePath

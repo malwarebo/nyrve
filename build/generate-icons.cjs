@@ -1,12 +1,12 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Forge contributors. All rights reserved.
+ *  Copyright (c) Nyrve contributors. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
 // @ts-check
 
 /**
- * Generates all Forge icon assets from the master SVG.
+ * Generates all Nyrve icon assets from the master SVG.
  *
  * Usage: node build/generate-icons.js
  *
@@ -64,12 +64,12 @@ function createIco(pngBuffers, sizes) {
 }
 
 const ROOT = path.join(__dirname, '..');
-const ICONS_DIR = path.join(ROOT, 'resources', 'forge', 'icons');
-const FAVICON_DIR = path.join(ROOT, 'resources', 'forge', 'favicon');
-const LOGO_DIR = path.join(ROOT, 'resources', 'forge', 'logo');
+const ICONS_DIR = path.join(ROOT, 'resources', 'nyrve', 'icons');
+const FAVICON_DIR = path.join(ROOT, 'resources', 'nyrve', 'favicon');
+const LOGO_DIR = path.join(ROOT, 'resources', 'nyrve', 'logo');
 
-const MASTER_SVG = path.join(ICONS_DIR, 'forge.svg');
-const LIGHT_SVG = path.join(ICONS_DIR, 'forge-light.svg');
+const MASTER_SVG = path.join(ICONS_DIR, 'nyrve.svg');
+const LIGHT_SVG = path.join(ICONS_DIR, 'nyrve-light.svg');
 
 // PNG sizes to generate from the master (dark bg) SVG
 const MASTER_SIZES = [1024, 512, 256, 128, 96, 80, 64, 48, 32, 16];
@@ -77,7 +77,7 @@ const MASTER_SIZES = [1024, 512, 256, 128, 96, 80, 64, 48, 32, 16];
 // PNG sizes to generate from the light (transparent bg) SVG
 const LIGHT_SIZES = [512, 256, 128, 48, 32];
 
-// ICO sizes (embedded in forge.ico)
+// ICO sizes (embedded in nyrve.ico)
 const ICO_SIZES = [16, 24, 32, 48, 64, 128, 256];
 
 /**
@@ -108,7 +108,7 @@ function renderAppleTouchIcon(svgContent, size) {
 }
 
 async function main() {
-	console.log('Forge Icon Generator');
+	console.log('Nyrve Icon Generator');
 	console.log('====================\n');
 
 	// Ensure output directories exist
@@ -124,18 +124,18 @@ async function main() {
 	console.log('Generating master PNGs...');
 	for (const size of MASTER_SIZES) {
 		const png = renderSvgToPng(masterSvg, size, size);
-		const outPath = path.join(ICONS_DIR, `forge-${size}.png`);
+		const outPath = path.join(ICONS_DIR, `nyrve-${size}.png`);
 		fs.writeFileSync(outPath, png);
-		console.log(`  forge-${size}.png (${png.length} bytes)`);
+		console.log(`  nyrve-${size}.png (${png.length} bytes)`);
 	}
 
 	// --- Step 2: Light variant PNGs ---
 	console.log('\nGenerating light variant PNGs...');
 	for (const size of LIGHT_SIZES) {
 		const png = renderSvgToPng(lightSvg, size, size);
-		const outPath = path.join(ICONS_DIR, `forge-light-${size}.png`);
+		const outPath = path.join(ICONS_DIR, `nyrve-light-${size}.png`);
 		fs.writeFileSync(outPath, png);
-		console.log(`  forge-light-${size}.png (${png.length} bytes)`);
+		console.log(`  nyrve-light-${size}.png (${png.length} bytes)`);
 	}
 
 	// --- Step 3: Favicons ---
@@ -167,8 +167,8 @@ async function main() {
 
 	// site.webmanifest
 	const manifest = {
-		name: 'Forge',
-		short_name: 'Forge',
+		name: 'Nyrve',
+		short_name: 'Nyrve',
 		icons: [
 			{ src: '/android-chrome-192.png', sizes: '192x192', type: 'image/png' },
 			{ src: '/android-chrome-512.png', sizes: '512x512', type: 'image/png' },
@@ -183,20 +183,20 @@ async function main() {
 	);
 	console.log('  site.webmanifest');
 
-	// --- Step 4: forge.ico (Windows, multiple sizes) ---
-	console.log('\nGenerating forge.ico...');
+	// --- Step 4: nyrve.ico (Windows, multiple sizes) ---
+	console.log('\nGenerating nyrve.ico...');
 	const icoPngBuffers = [];
 	for (const size of ICO_SIZES) {
 		icoPngBuffers.push(renderSvgToPng(masterSvg, size, size));
 	}
 	const icoBuffer = createIco(icoPngBuffers, ICO_SIZES);
-	fs.writeFileSync(path.join(ICONS_DIR, 'forge.ico'), icoBuffer);
-	console.log('  forge.ico (' + ICO_SIZES.join(', ') + ')');
+	fs.writeFileSync(path.join(ICONS_DIR, 'nyrve.ico'), icoBuffer);
+	console.log('  nyrve.ico (' + ICO_SIZES.join(', ') + ')');
 
-	// --- Step 5: forge.icns (macOS) ---
+	// --- Step 5: nyrve.icns (macOS) ---
 	if (process.platform === 'darwin') {
-		console.log('\nGenerating forge.icns (macOS)...');
-		const iconsetDir = path.join(ICONS_DIR, 'forge.iconset');
+		console.log('\nGenerating nyrve.icns (macOS)...');
+		const iconsetDir = path.join(ICONS_DIR, 'nyrve.iconset');
 		fs.mkdirSync(iconsetDir, { recursive: true });
 
 		// iconutil requires specific naming: icon_NxN.png and icon_NxN@2x.png
@@ -219,8 +219,8 @@ async function main() {
 		}
 
 		try {
-			execSync(`iconutil -c icns -o "${path.join(ICONS_DIR, 'forge.icns')}" "${iconsetDir}"`);
-			console.log('  forge.icns');
+			execSync(`iconutil -c icns -o "${path.join(ICONS_DIR, 'nyrve.icns')}" "${iconsetDir}"`);
+			console.log('  nyrve.icns');
 		} catch (e) {
 			console.warn('  WARNING: iconutil failed:', e.message);
 		}
@@ -231,24 +231,24 @@ async function main() {
 		}
 		fs.rmdirSync(iconsetDir);
 	} else {
-		console.log('\nSkipping forge.icns (not on macOS)');
+		console.log('\nSkipping nyrve.icns (not on macOS)');
 	}
 
 	// --- Step 6: Copy to logo dir (convenience copies) ---
 	console.log('\nCopying logo variants...');
-	fs.copyFileSync(path.join(ICONS_DIR, 'forge.svg'), path.join(LOGO_DIR, 'forge.svg'));
-	fs.copyFileSync(path.join(ICONS_DIR, 'forge-light.svg'), path.join(LOGO_DIR, 'forge-light.svg'));
-	fs.copyFileSync(path.join(ICONS_DIR, 'forge-512.png'), path.join(LOGO_DIR, 'forge-512.png'));
-	console.log('  forge.svg, forge-light.svg, forge-512.png');
+	fs.copyFileSync(path.join(ICONS_DIR, 'nyrve.svg'), path.join(LOGO_DIR, 'nyrve.svg'));
+	fs.copyFileSync(path.join(ICONS_DIR, 'nyrve-light.svg'), path.join(LOGO_DIR, 'nyrve-light.svg'));
+	fs.copyFileSync(path.join(ICONS_DIR, 'nyrve-512.png'), path.join(LOGO_DIR, 'nyrve-512.png'));
+	console.log('  nyrve.svg, nyrve-light.svg, nyrve-512.png');
 
 	// --- Step 7: Copy to platform directories ---
 	console.log('\nCopying to platform directories...');
 
 	const platformCopies = [
-		{ src: 'forge.icns', dest: path.join(ROOT, 'resources', 'darwin', 'forge.icns') },
-		{ src: 'forge.ico', dest: path.join(ROOT, 'resources', 'win32', 'forge.ico') },
-		{ src: 'forge-128.png', dest: path.join(ROOT, 'resources', 'linux', 'forge.png') },
-		{ src: 'forge-512.png', dest: path.join(ROOT, 'resources', 'linux', 'forge-512.png') },
+		{ src: 'nyrve.icns', dest: path.join(ROOT, 'resources', 'darwin', 'nyrve.icns') },
+		{ src: 'nyrve.ico', dest: path.join(ROOT, 'resources', 'win32', 'nyrve.ico') },
+		{ src: 'nyrve-128.png', dest: path.join(ROOT, 'resources', 'linux', 'nyrve.png') },
+		{ src: 'nyrve-512.png', dest: path.join(ROOT, 'resources', 'linux', 'nyrve-512.png') },
 	];
 
 	for (const { src, dest } of platformCopies) {

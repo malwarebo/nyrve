@@ -29,7 +29,7 @@
 		"./*.ts",
 		"./typings",
 		"./vs/**/*.ts",
-		"./forge/**/*.ts",
+		"./nyrve/**/*.ts",
 		"./vscode-dts/vscode.proposed.*.d.ts",
 		"./vscode-dts/vscode.d.ts"
 	],

@@ -1,5 +1,5 @@
 {
-	"name": "Forge",
+	"name": "Nyrve",
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
@@ -14,8 +14,8 @@
 	"privileged": true,
 	"mounts": [
 		{
-			"source": "forge-dev",
-			"target": "/forge-dev",
+			"source": "nyrve-dev",
+			"target": "/nyrve-dev",
 			"type": "volume"
 		}
 	],

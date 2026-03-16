@@ -78,7 +78,7 @@
 		{
 			"type": "extensionHost",
 			"request": "launch",
-			"name": "Forge Emmet Tests",
+			"name": "Nyrve Emmet Tests",
 			"runtimeExecutable": "${execPath}",
 			"args": [
 				"${workspaceFolder}/extensions/emmet/test-workspace",
@@ -96,7 +96,7 @@
 		{
 			"type": "extensionHost",
 			"request": "launch",
-			"name": "Forge Configuration Editing Tests",
+			"name": "Nyrve Configuration Editing Tests",
 			"runtimeExecutable": "${execPath}",
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}/extensions/configuration-editing",
@@ -113,7 +113,7 @@
 		{
 			"type": "extensionHost",
 			"request": "launch",
-			"name": "Forge Git Tests",
+			"name": "Nyrve Git Tests",
 			"runtimeExecutable": "${execPath}",
 			"args": [
 				"/tmp/my4g9l",
@@ -131,7 +131,7 @@
 		{
 			"type": "extensionHost",
 			"request": "launch",
-			"name": "Forge Github Tests",
+			"name": "Nyrve Github Tests",
 			"runtimeExecutable": "${execPath}",
 			"args": [
 				"${workspaceFolder}/extensions/github/testWorkspace",
@@ -149,7 +149,7 @@
 		{
 			"type": "extensionHost",
 			"request": "launch",
-			"name": "Forge API Tests (single folder)",
+			"name": "Nyrve API Tests (single folder)",
 			"runtimeExecutable": "${execPath}",
 			"args": [
 				// "${workspaceFolder}", // Uncomment for running out of sources.
@@ -169,7 +169,7 @@
 		{
 			"type": "extensionHost",
 			"request": "launch",
-			"name": "Forge API Tests (workspace)",
+			"name": "Nyrve API Tests (workspace)",
 			"runtimeExecutable": "${execPath}",
 			"args": [
 				"${workspaceFolder}/extensions/vscode-api-tests/testworkspace.code-workspace",
@@ -187,7 +187,7 @@
 		{
 			"type": "extensionHost",
 			"request": "launch",
-			"name": "Forge Tokenizer Tests",
+			"name": "Nyrve Tokenizer Tests",
 			"runtimeExecutable": "${execPath}",
 			"args": [
 				"${workspaceFolder}/extensions/vscode-colorize-tests/test",
@@ -205,7 +205,7 @@
 		{
 			"type": "extensionHost",
 			"request": "launch",
-			"name": "Forge Tokenizer Performance Tests",
+			"name": "Nyrve Tokenizer Performance Tests",
 			"runtimeExecutable": "${execPath}",
 			"args": [
 				"${workspaceFolder}/extensions/vscode-colorize-perf-tests/test",
@@ -223,7 +223,7 @@
 		{
 			"type": "chrome",
 			"request": "attach",
-			"name": "Attach to Forge",
+			"name": "Attach to Nyrve",
 			"browserAttachLocation": "workspace",
 			"port": 9222,
 			"outFiles": [
@@ -237,7 +237,7 @@
 		{
 			"type": "chrome",
 			"request": "launch",
-			"name": "Launch Forge Internal",
+			"name": "Launch Nyrve Internal",
 			"windows": {
 				"runtimeExecutable": "${workspaceFolder}/scripts/code.bat"
 			},
@@ -327,7 +327,7 @@
 			// To debug observables you also need the extension "ms-vscode.debug-value-editor"
 			"type": "chrome",
 			"request": "launch",
-			"name": "Launch Forge Internal (Hot Reload)",
+			"name": "Launch Nyrve Internal (Hot Reload)",
 			"windows": {
 				"runtimeExecutable": "${workspaceFolder}/scripts/code.bat"
 			},
@@ -375,7 +375,7 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Forge Server (Web)",
+			"name": "Nyrve Server (Web)",
 			"runtimeExecutable": "${workspaceFolder}/scripts/code-server.sh",
 			"windows": {
 				"runtimeExecutable": "${workspaceFolder}/scripts/code-server.bat",
@@ -415,7 +415,7 @@
 			"request": "launch",
 			"outFiles": [],
 			"perScriptSourcemaps": "yes",
-			"name": "Forge Server (Web, Chrome)",
+			"name": "Nyrve Server (Web, Chrome)",
 			"url": "http://localhost:8080?tkn=dev-token",
 			"preLaunchTask": "Run code server",
 			"presentation": {
@@ -428,7 +428,7 @@
 			"request": "launch",
 			"outFiles": [],
 			"perScriptSourcemaps": "yes",
-			"name": "Forge Server (Web, Edge)",
+			"name": "Nyrve Server (Web, Edge)",
 			"url": "http://localhost:8080?tkn=dev-token",
 			"pauseForSourceMap": false,
 			"preLaunchTask": "Run code server",
@@ -442,7 +442,7 @@
 			"request": "launch",
 			"outFiles": [],
 			"perScriptSourcemaps": "yes",
-			"name": "Forge Web (Chrome)",
+			"name": "Nyrve Web (Chrome)",
 			"url": "http://localhost:8080",
 			"preLaunchTask": "Run code web",
 			"presentation": {
@@ -455,7 +455,7 @@
 			"request": "launch",
 			"outFiles": [],
 			"perScriptSourcemaps": "yes",
-			"name": "Forge Web (Edge)",
+			"name": "Nyrve Web (Edge)",
 			"url": "http://localhost:8080",
 			"pauseForSourceMap": false,
 			"preLaunchTask": "Run code web",
@@ -566,7 +566,7 @@
 				"${workspaceFolder}/out/**/*.js"
 			],
 			"cascadeTerminateToConfigurations": [
-				"Attach to Forge"
+				"Attach to Nyrve"
 			],
 			"env": {
 				"MOCHA_COLORS": "true"
@@ -588,7 +588,7 @@
 				"runtimeExecutable": "${workspaceFolder}/.build/electron/code-oss"
 			},
 			"cascadeTerminateToConfigurations": [
-				"Attach to Forge"
+				"Attach to Nyrve"
 			],
 			"outputCapture": "std",
 			"args": [
@@ -694,10 +694,10 @@
 	],
 	"compounds": [
 		{
-			"name": "Forge",
+			"name": "Nyrve",
 			"stopAll": true,
 			"configurations": [
-				"Launch Forge Internal",
+				"Launch Nyrve Internal",
 				"Attach to Main Process",
 				"Attach to Extension Host",
 				"Attach to Shared Process",
@@ -724,10 +724,10 @@
 			}
 		},
 		{
-			"name": "Forge (Hot Reload)",
+			"name": "Nyrve (Hot Reload)",
 			"stopAll": true,
 			"configurations": [
-				"Launch Forge Internal (Hot Reload)",
+				"Launch Nyrve Internal (Hot Reload)",
 				"Attach to Main Process",
 				"Attach to Extension Host",
 				"Attach to Shared Process",
@@ -741,7 +741,7 @@
 		{
 			"name": "Search, Renderer, and Main processes",
 			"configurations": [
-				"Launch Forge Internal",
+				"Launch Nyrve Internal",
 				"Attach to Main Process",
 				"Attach to Search Process"
 			],
@@ -753,7 +753,7 @@
 		{
 			"name": "Renderer, Extension Host, and Main processes",
 			"configurations": [
-				"Launch Forge Internal",
+				"Launch Nyrve Internal",
 				"Attach to Main Process",
 				"Attach to Extension Host"
 			],
@@ -765,7 +765,7 @@
 		{
 			"name": "Debug Unit Tests",
 			"configurations": [
-				"Attach to Forge",
+				"Attach to Nyrve",
 				"Run Unit Tests"
 			],
 			"presentation": {
@@ -776,7 +776,7 @@
 		{
 			"name": "Debug Unit Tests (Current File)",
 			"configurations": [
-				"Attach to Forge",
+				"Attach to Nyrve",
 				"Run Unit Tests For Current File"
 			],
 			"presentation": {
@@ -788,7 +788,7 @@
 			"name": "Renderer and Main processes",
 			"stopAll": true,
 			"configurations": [
-				"Launch Forge Internal",
+				"Launch Nyrve Internal",
 				"Attach to Main Process"
 			],
 			"preLaunchTask": "Ensure Prelaunch Dependencies"

@@ -1,11 +1,11 @@
 ## Security
 
-The Forge team takes the security of our software seriously.
+The Nyrve team takes the security of our software seriously.
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
 Instead, please report security vulnerabilities by emailing the maintainers or by opening a
-[private security advisory](https://github.com/malwarebo/forge/security/advisories/new) on GitHub.
+[private security advisory](https://github.com/malwarebo/nyrve/security/advisories/new) on GitHub.
 
 Please include the following information in your report:
 
@@ -21,6 +21,6 @@ We will acknowledge receipt of your vulnerability report and send you regular up
 
 ## Upstream VS Code Security
 
-Forge is a fork of [VS Code](https://github.com/microsoft/vscode). For security issues
+Nyrve is a fork of [VS Code](https://github.com/microsoft/vscode). For security issues
 in upstream VS Code components (code under `src/vs/`), please also consider reporting to
 Microsoft per their [security policy](https://github.com/microsoft/vscode/security/policy).

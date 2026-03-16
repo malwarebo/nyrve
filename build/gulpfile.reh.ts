@@ -445,11 +445,11 @@ function patchWin32DependenciesTask(destinationFolderName: string) {
 			await rcedit(path.join(cwd, dep), {
 				'file-version': baseVersion,
 				'version-string': {
-				'CompanyName': 'Forge contributors',
+				'CompanyName': 'Nyrve contributors',
 				'FileDescription': productContents.nameLong,
 				'FileVersion': packageJsonContents.version,
 				'InternalName': basename,
-				'LegalCopyright': 'Copyright (C) 2026 Forge contributors. All rights reserved',
+				'LegalCopyright': 'Copyright (C) 2026 Nyrve contributors. All rights reserved',
 					'OriginalFilename': basename,
 					'ProductName': productContents.nameLong,
 					'ProductVersion': packageJsonContents.version,

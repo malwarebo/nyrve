@@ -1,6 +1,6 @@
-Template: @@NAME@@/add-forge-repo
+Template: @@NAME@@/add-ashbolt-repo
 Type: boolean
 Default: true
-Description: Add Forge apt repository?
- The installer would like to add the Forge repository and signing
- key to update Forge through apt.
+Description: Add Ashbolt apt repository?
+ The installer would like to add the Ashbolt repository and signing
+ key to update Ashbolt through apt.

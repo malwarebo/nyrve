@@ -440,16 +440,16 @@ class ESRPReleaseService {
 			owners: [{ owner: { userPrincipalName: 'jomo@microsoft.com' } }],
 			approvers: [{ approver: { userPrincipalName: 'jomo@microsoft.com' }, isAutoApproved: true, isMandatory: false }],
 			releaseInfo: {
-				title: 'Forge',
+				title: 'Nyrve',
 				properties: {
 					'ReleaseContentType': 'InstallPackage'
 				},
 				minimumNumberOfApprovers: 1
 			},
 			productInfo: {
-				name: 'Forge',
+				name: 'Nyrve',
 				version,
-				description: 'Forge'
+				description: 'Nyrve'
 			},
 			accessPermissionsInfo: {
 				mainPublisher: 'VSCode',

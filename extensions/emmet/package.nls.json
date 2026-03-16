@@ -1,5 +1,5 @@
 {
-	"description": "Emmet support for Forge",
+	"description": "Emmet support for Nyrve",
 	"command.wrapWithAbbreviation": "Wrap with Abbreviation",
 	"command.removeTag": "Remove Tag",
 	"command.updateTag": "Update Tag",
