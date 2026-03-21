@@ -11,7 +11,7 @@ import { ILogService } from '../../vs/platform/log/common/log.js';
 // --- Constants ---
 
 const ANTHROPIC_API_BASE = 'https://api.anthropic.com';
-const ANTHROPIC_API_VERSION = '2023-06-01';
+const ANTHROPIC_API_VERSION = '2024-10-22';
 const USER_AGENT = 'Nyrve-IDE/1.0';
 
 const MAX_RETRIES = 6;

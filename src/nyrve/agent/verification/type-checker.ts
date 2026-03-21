@@ -10,6 +10,9 @@ import { ILogService } from '../../../vs/platform/log/common/log.js';
 import { IConfigurationService } from '../../../vs/platform/configuration/common/configuration.js';
 import { INyrveFrameworkDetector } from './framework-detector.js';
 import { IWorkspaceContextService } from '../../../vs/platform/workspace/common/workspace.js';
+import { IFileService } from '../../../vs/platform/files/common/files.js';
+import { URI } from '../../../vs/base/common/uri.js';
+import { VSBuffer } from '../../../vs/base/common/buffer.js';
 import { NyrveChangeSet } from '../../ui/diff-review/diff-panel.js';
 
 // --- Types ---
@@ -53,6 +56,7 @@ export class NyrveTypeChecker extends Disposable implements INyrveTypeChecker {
 		@INyrveFrameworkDetector private readonly frameworkDetector: INyrveFrameworkDetector,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IWorkspaceContextService private readonly workspaceContextService: IWorkspaceContextService,
+		@IFileService private readonly fileService: IFileService,
 		@ILogService private readonly logService: ILogService,
 	) {
 		super();
@@ -72,19 +76,17 @@ export class NyrveTypeChecker extends Disposable implements INyrveTypeChecker {
 			return this._skippedResult('no type checker detected');
 		}
 
-		// Allow user to override the auto-detected command
 		const commandOverride = this.configurationService.getValue<string>('nyrve.verification.typeCheckCommand');
 		const command = commandOverride || config.command;
 
 		this.logService.info(`[Nyrve] Running type check with ${config.checker}: ${command}`);
 
 		try {
-			// Step 1: Stash agent changes → run type checker → capture baseline errors
-			const modifiedFiles = changeset.files.map(f => f.filePath);
-			const errorsBefore = await this._runTypeCheckWithStash(command, modifiedFiles, true);
+			// Step 1: Write original content → run type checker → capture baseline
+			const errorsBefore = await this._runTypeCheckWithContent(command, changeset, 'original');
 
-			// Step 2: Restore agent changes → run type checker → capture new errors
-			const errorsAfter = await this._runTypeCheckWithStash(command, modifiedFiles, false);
+			// Step 2: Write proposed content → run type checker → capture after
+			const errorsAfter = await this._runTypeCheckWithContent(command, changeset, 'proposed');
 
 			// Step 3: Diff the two lists
 			const newErrors = this._diffErrors(errorsAfter, errorsBefore);
@@ -122,44 +124,54 @@ export class NyrveTypeChecker extends Disposable implements INyrveTypeChecker {
 	}
 
 	/**
-	 * Run the type checker. If `stashFirst` is true, stash current changes first
-	 * to capture the baseline state, then pop afterwards.
+	 * Write either original or proposed content to disk, run the type checker,
+	 * then restore the proposed content. This avoids git stash which can
+	 * corrupt user state.
 	 */
-	private async _runTypeCheckWithStash(
+	private async _runTypeCheckWithContent(
 		command: string,
-		_modifiedFiles: string[],
-		isBaseline: boolean,
+		changeset: NyrveChangeSet,
+		phase: 'original' | 'proposed',
 	): Promise<TypeDiagnostic[]> {
+		const root = this._getWorkspaceRoot();
+		if (!root) {
+			return [];
+		}
+
+		const filesToRestore: Array<{ uri: URI; content: string }> = [];
+
 		try {
-			if (isBaseline) {
-				// Stash agent changes to get the "before" state
-				await this._exec('git stash push -m "nyrve-verification-baseline"');
+			// Write the target content to disk
+			for (const file of changeset.files) {
+				const uri = URI.joinPath(root, file.filePath);
+				const contentToWrite = phase === 'original' ? file.originalContent : file.proposedContent;
+				const contentToRestore = phase === 'original' ? file.proposedContent : file.proposedContent;
+				filesToRestore.push({ uri, content: contentToRestore });
+				await this.fileService.writeFile(uri, VSBuffer.fromString(contentToWrite));
 			}
 
 			const output = await this._exec(command);
-			const diagnostics = this._parseOutput(output, command);
-
-			if (isBaseline) {
-				// Restore agent changes
-				await this._exec('git stash pop');
-			}
-
-			return diagnostics;
+			return this._parseOutput(output, command);
 		} catch (error) {
-			if (isBaseline) {
-				// Ensure we restore even on error
-				try {
-					await this._exec('git stash pop');
-				} catch {
-					// Stash may not exist if the stash push failed
-				}
-			}
-			// Type check command exit code != 0 means there are errors — parse them
 			if (error instanceof CommandResult) {
 				return this._parseOutput(error.output, command);
 			}
 			throw error;
+		} finally {
+			// Always restore proposed content so we leave files in the agent-modified state
+			for (const { uri, content } of filesToRestore) {
+				try {
+					await this.fileService.writeFile(uri, VSBuffer.fromString(content));
+				} catch {
+					// Best effort restore
+				}
+			}
 		}
+	}
+
+	private _getWorkspaceRoot(): URI | undefined {
+		const folders = this.workspaceContextService.getWorkspace().folders;
+		return folders.length > 0 ? folders[0].uri : undefined;
 	}
 
 	private _parseOutput(output: string, command: string): TypeDiagnostic[] {

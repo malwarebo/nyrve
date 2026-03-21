@@ -80,6 +80,83 @@ Nyrve has a dedicated settings page (`Nyrve > Settings` or `Cmd+Shift+A` → gea
 
 Per-project overrides via `.nyrve/config.json`. Global settings at `~/.nyrve/settings.json`.
 
+## Built on VS Code
+
+Nyrve is a fork of [VS Code](https://github.com/microsoft/vscode). All VS Code extensions, themes, keybindings, and settings work. If you use VS Code today, Nyrve feels familiar on day one. The difference is everything behind the `src/nyrve/` directory: the agent, the verification engine, the memory system, and every integration point between them.
+
+## Building
+
+### Prerequisites
+
+- Node.js 18+
+- Python 3 (for native modules)
+- C++ toolchain (GCC/Clang on Linux, Xcode on macOS, MSVC on Windows)
+
+### Development
+
+```bash
+npm install
+npm run compile
+./scripts/code.sh       # macOS/Linux
+./scripts/code.bat      # Windows
+```
+
+### Platform builds
+
+Builds use gulp. The task pattern is `vscode-{platform}-{arch}[-min]`. The `-min` suffix produces a minified production build.
+
+```bash
+# macOS
+npm run gulp vscode-darwin-arm64-min
+npm run gulp vscode-darwin-x64-min
+
+# Windows
+npm run gulp vscode-win32-x64-min
+npm run gulp vscode-win32-arm64-min
+
+# Linux
+npm run gulp vscode-linux-x64-min
+npm run gulp vscode-linux-arm64-min
+```
+
+Output goes to `../VSCode-{platform}-{arch}/`.
+
+### Platform installers
+
+After building, create distributable packages:
+
+**Linux** (.deb, .rpm, .snap):
+
+```bash
+npm run gulp vscode-linux-x64-build-deb
+npm run gulp vscode-linux-x64-build-rpm
+npm run gulp vscode-linux-x64-build-snap
+```
+
+**Windows** (.exe installer):
+
+```bash
+npm run gulp vscode-win32-x64-setup
+npm run gulp vscode-win32-arm64-setup
+```
+
+**macOS** (universal .app):
+Handled by `build/darwin/create-universal-app.ts` after building both x64 and arm64 targets.
+
+### CI
+
+The full multi-platform build pipeline is in `build/azure-pipelines/product-build.yml`. It builds all targets in parallel: Windows (x64, arm64), macOS (x64, arm64, universal), Linux (x64, arm64, armhf), Alpine (x64, arm64).
+
+### Validation
+
+```bash
+npm run compile-check-ts-native   # TypeScript compilation check
+npm run valid-layers-check        # Architecture layering validation
+scripts/test.sh                   # Unit tests
+scripts/test.sh --grep "Nyrve"    # Nyrve-specific tests
+scripts/test-integration.sh       # Integration tests
+```
+
 ## Project files
 
 Nyrve stores project-specific data in `.nyrve/` at your workspace root:
@@ -98,16 +175,3 @@ Nyrve stores project-specific data in `.nyrve/` at your workspace root:
 ```
 
 `team-knowledge.md` is the one file meant to be committed. Everything else is local.
-
-## Built on VS Code
-
-Nyrve is a fork of [VS Code](https://github.com/microsoft/vscode). All VS Code extensions, themes, keybindings, and settings work. If you use VS Code today, Nyrve feels familiar on day one. The difference is everything behind the `src/nyrve/` directory: the agent, the verification engine, the memory system, and every integration point between them.
-
-## Requirements
-
-- Node.js 18+
-- Anthropic API key
-
-## License
-
-MIT

@@ -9,6 +9,9 @@ import { InstantiationType, registerSingleton } from '../../../vs/platform/insta
 import { ILogService } from '../../../vs/platform/log/common/log.js';
 import { IConfigurationService } from '../../../vs/platform/configuration/common/configuration.js';
 import { IWorkspaceContextService } from '../../../vs/platform/workspace/common/workspace.js';
+import { IFileService } from '../../../vs/platform/files/common/files.js';
+import { URI } from '../../../vs/base/common/uri.js';
+import { VSBuffer } from '../../../vs/base/common/buffer.js';
 import { INyrveFrameworkDetector, TestRunnerConfig } from './framework-detector.js';
 import { INyrveIndexManager } from '../../indexer/index-manager.js';
 import { NyrveChangeSet } from '../../ui/diff-review/diff-panel.js';
@@ -69,6 +72,7 @@ export class NyrveTestRunner extends Disposable implements INyrveTestRunner {
 		@INyrveIndexManager private readonly indexManager: INyrveIndexManager,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IWorkspaceContextService private readonly workspaceContextService: IWorkspaceContextService,
+		@IFileService private readonly fileService: IFileService,
 		@ILogService private readonly logService: ILogService,
 	) {
 		super();
@@ -96,19 +100,17 @@ export class NyrveTestRunner extends Disposable implements INyrveTestRunner {
 		this.logService.info(`[Nyrve] Running tests with ${config.framework}`);
 
 		try {
-			// Find relevant test files for the modified source files
 			const modifiedFiles = changeset.files.map(f => f.filePath);
 			const relevantTestFiles = await this._findRelevantTests(modifiedFiles, config);
 
-			// Build the test command
 			const command = commandOverride || (
 				relevantTestFiles.length > 0
 					? this._buildRelevantTestCommand(config, relevantTestFiles, modifiedFiles)
 					: config.command
 			);
 
-			// Step 1: Stash agent changes → run tests → capture beforeRun
-			await this._exec('git stash push -m "nyrve-verification-test-baseline"');
+			// Step 1: Write original content → run tests → capture beforeRun
+			await this._writeChangesetContent(changeset, 'original');
 			let beforeRun: TestRunSummary;
 			let beforeTests: TestCase[];
 			try {
@@ -116,10 +118,10 @@ export class NyrveTestRunner extends Disposable implements INyrveTestRunner {
 				beforeRun = beforeResult.summary;
 				beforeTests = beforeResult.tests;
 			} finally {
-				await this._exec('git stash pop');
+				await this._writeChangesetContent(changeset, 'proposed');
 			}
 
-			// Step 2: Run tests again with agent changes applied → capture afterRun
+			// Step 2: Run tests with proposed content → capture afterRun
 			const afterResult = await this._runTestCommand(command, config.framework, testTimeout);
 			const afterRun = afterResult.summary;
 			const afterTests = afterResult.tests;
@@ -473,6 +475,19 @@ export class NyrveTestRunner extends Disposable implements INyrveTestRunner {
 			relevantTestCount: 0,
 			duration: 0,
 		};
+	}
+
+	private async _writeChangesetContent(changeset: NyrveChangeSet, phase: 'original' | 'proposed'): Promise<void> {
+		const folders = this.workspaceContextService.getWorkspace().folders;
+		if (folders.length === 0) {
+			return;
+		}
+		const root = folders[0].uri;
+		for (const file of changeset.files) {
+			const uri = URI.joinPath(root, file.filePath);
+			const content = phase === 'original' ? file.originalContent : file.proposedContent;
+			await this.fileService.writeFile(uri, VSBuffer.fromString(content));
+		}
 	}
 
 	private async _exec(command: string, timeout?: number): Promise<string> {

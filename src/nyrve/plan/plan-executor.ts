@@ -10,9 +10,13 @@ import { createDecorator } from '../../vs/platform/instantiation/common/instanti
 import { InstantiationType, registerSingleton } from '../../vs/platform/instantiation/common/extensions.js';
 import { IConfigurationService } from '../../vs/platform/configuration/common/configuration.js';
 import { ILogService } from '../../vs/platform/log/common/log.js';
+import { IFileService } from '../../vs/platform/files/common/files.js';
+import { IWorkspaceContextService } from '../../vs/platform/workspace/common/workspace.js';
+import { URI } from '../../vs/base/common/uri.js';
 import { INyrveAgentEngine, NyrveAgentRequest } from '../agent/agent-engine.js';
 import { INyrveVerificationEngine } from '../agent/verification-engine.js';
 import { INyrveTokenTracker } from '../agent/token-tracker.js';
+import { NyrveChangeSet, NyrveFileChange, ChangeSetStatus, HunkStatus } from '../ui/diff-review/diff-panel.js';
 import {
 	Plan,
 	PlanStep,
@@ -90,9 +94,11 @@ export class NyrvePlanExecutor extends Disposable implements INyrvePlanExecutor 
 
 	constructor(
 		@INyrveAgentEngine private readonly agentEngine: INyrveAgentEngine,
-		@INyrveVerificationEngine _verificationEngine: INyrveVerificationEngine,
+		@INyrveVerificationEngine private readonly verificationEngine: INyrveVerificationEngine,
 		@INyrveTokenTracker private readonly tokenTracker: INyrveTokenTracker,
 		@INyrvePlanStorage private readonly planStorage: INyrvePlanStorage,
+		@IFileService private readonly fileService: IFileService,
+		@IWorkspaceContextService private readonly workspaceContextService: IWorkspaceContextService,
 		@IConfigurationService _configurationService: IConfigurationService,
 		@ILogService private readonly logService: ILogService,
 	) {
@@ -254,38 +260,46 @@ export class NyrvePlanExecutor extends Disposable implements INyrvePlanExecutor 
 		const startTime = Date.now();
 
 		try {
-			// Build step-specific prompt
 			const stepPrompt = this._buildStepPrompt(plan, step, stepIndex);
 
-			// Execute via agent engine
 			const cts = new CancellationTokenSource();
 			const agentRequest: NyrveAgentRequest = {
 				messages: [{ role: 'user', content: stepPrompt, timestamp: Date.now() }],
-				systemPrompt: `You are executing step ${stepIndex + 1} of a plan. Follow the instructions precisely. Only modify files within the scope of this step.`,
+				systemPrompt: this._buildStepSystemPrompt(stepIndex),
 			};
 			const response = await this.agentEngine.sendMessage(agentRequest, cts.token);
 			cts.dispose();
 
-			step.status = StepStatus.Verifying;
-			this.planStorage.setActivePlan(plan);
-
-			// Verification is available but requires a changeset —
-			// for now mark as passed since the agent engine handles diffs separately
-			const verificationPassed = true;
-
-			const duration = Date.now() - startTime;
 			const tokensUsed = response ? (response.inputTokens + response.outputTokens) : 0;
 
-			if (verificationPassed) {
-				step.status = StepStatus.Completed;
-			} else {
-				step.status = StepStatus.Failed;
+			// Parse file changes from the agent response
+			const changeset = await this._parseResponseToChangeset(response.content, step);
+
+			let verificationPassed = true;
+			let changesetId: string | null = null;
+
+			if (changeset && changeset.files.length > 0) {
+				changesetId = changeset.id;
+				step.status = StepStatus.Verifying;
+				this.planStorage.setActivePlan(plan);
+
+				// Run verification pipeline
+				const report = await this.verificationEngine.verify(changeset);
+				verificationPassed = report.status === 'passed' || report.status === 'passed_with_warnings';
+
+				this.logService.info(
+					`[Nyrve] Step ${stepIndex + 1} verification: ${report.status} ` +
+					`(confidence: ${report.confidence}%)`
+				);
 			}
+
+			const duration = Date.now() - startTime;
+			step.status = verificationPassed ? StepStatus.Completed : StepStatus.Failed;
 
 			const result: StepExecutionResult = {
 				stepId: step.id,
 				status: verificationPassed ? 'success' : 'failed',
-				changesetId: null,
+				changesetId,
 				verificationPassed,
 				duration,
 				tokensUsed,
@@ -339,6 +353,86 @@ export class NyrvePlanExecutor extends Disposable implements INyrvePlanExecutor 
 		if (this._isPaused) {
 			this._isPaused = false;
 		}
+	}
+
+	private _buildStepSystemPrompt(stepIndex: number): string {
+		return [
+			`You are executing step ${stepIndex + 1} of a plan. Follow the instructions precisely.`,
+			'Only modify files within the scope of this step.',
+			'Output each file change as:',
+			'### FILE: <path>',
+			'```',
+			'<full file content>',
+			'```',
+		].join('\n');
+	}
+
+	/**
+	 * Parse the agent's response to extract file changes and build a NyrveChangeSet.
+	 */
+	private async _parseResponseToChangeset(
+		response: string,
+		step: PlanStep,
+	): Promise<NyrveChangeSet | undefined> {
+		const filePattern = /### FILE:\s*(.+?)\n```(?:\w*)\n([\s\S]*?)```/g;
+		const files: NyrveFileChange[] = [];
+		let match: RegExpExecArray | null;
+
+		const root = this._getWorkspaceRoot();
+		if (!root) {
+			return undefined;
+		}
+
+		while ((match = filePattern.exec(response)) !== null) {
+			const filePath = match[1].trim();
+			const proposedContent = match[2];
+
+			// Read original content from disk
+			let originalContent = '';
+			try {
+				const uri = URI.joinPath(root, filePath);
+				const existing = await this.fileService.readFile(uri);
+				originalContent = existing.value.toString();
+			} catch {
+				// New file — original is empty
+			}
+
+			if (originalContent === proposedContent) {
+				continue;
+			}
+
+			files.push({
+				filePath,
+				originalContent,
+				proposedContent,
+				hunks: [{
+					id: `hunk_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+					filePath,
+					startLine: 1,
+					endLine: proposedContent.split('\n').length,
+					originalContent,
+					proposedContent,
+					status: HunkStatus.Pending,
+				}],
+			});
+		}
+
+		if (files.length === 0) {
+			return undefined;
+		}
+
+		return {
+			id: `cs_${step.id}_${Date.now()}`,
+			description: `Plan step: ${step.title}`,
+			files,
+			status: ChangeSetStatus.Proposed,
+			createdAt: Date.now(),
+		};
+	}
+
+	private _getWorkspaceRoot(): URI | undefined {
+		const folders = this.workspaceContextService.getWorkspace().folders;
+		return folders.length > 0 ? folders[0].uri : undefined;
 	}
 
 	private _buildStepPrompt(plan: Plan, step: PlanStep, stepIndex: number): string {

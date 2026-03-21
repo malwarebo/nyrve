@@ -14,6 +14,18 @@ import { IWorkspaceContextService } from '../../vs/platform/workspace/common/wor
 import { URI } from '../../vs/base/common/uri.js';
 import { VSBuffer } from '../../vs/base/common/buffer.js';
 
+// --- Text Utilities ---
+
+const BM25_STOP_WORDS = new Set(['a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'shall', 'can', 'to', 'of', 'in', 'for', 'on', 'with', 'at', 'by', 'from', 'as', 'into', 'through', 'during', 'before', 'after', 'and', 'but', 'or', 'not', 'no', 'if', 'then', 'than', 'that', 'this', 'it', 'its', 'we', 'they', 'i', 'you', 'he', 'she']);
+
+function bm25Tokenize(text: string): string[] {
+	return text
+		.toLowerCase()
+		.replace(/[^a-z0-9_\-]/g, ' ')
+		.split(/\s+/)
+		.filter(t => t.length > 1 && !BM25_STOP_WORDS.has(t));
+}
+
 // --- Types ---
 
 export interface DecisionEntry {
@@ -148,30 +160,50 @@ export class NyrveDecisionJournal extends Disposable implements INyrveDecisionJo
 	async searchDecisions(query: string, topK: number = 5): Promise<DecisionEntry[]> {
 		await this._ensureLoaded();
 
-		// Simple text-based search (in a full implementation, use embedding similarity)
-		const queryLower = query.toLowerCase();
-		const scored = this._entries
-			.filter(e => e.status === 'active')
-			.map(entry => {
-				let score = 0;
-				if (entry.title.toLowerCase().includes(queryLower)) {
-					score += 3;
-				}
-				if (entry.description.toLowerCase().includes(queryLower)) {
-					score += 2;
-				}
-				if (entry.rationale.toLowerCase().includes(queryLower)) {
-					score += 1;
-				}
-				if (entry.tags.some(t => t.toLowerCase().includes(queryLower))) {
-					score += 2;
-				}
-				return { entry, score };
-			})
-			.filter(s => s.score > 0)
-			.sort((a, b) => b.score - a.score);
+		const queryTerms = bm25Tokenize(query);
+		if (queryTerms.length === 0) {
+			return [];
+		}
 
-		return scored.slice(0, topK).map(s => s.entry);
+		const activeEntries = this._entries.filter(e => e.status === 'active');
+
+		// Build searchable documents with field weights
+		const docs = activeEntries.map(entry => {
+			const titleTokens = bm25Tokenize(entry.title);
+			const descTokens = bm25Tokenize(entry.description);
+			const rationaleTokens = bm25Tokenize(entry.rationale);
+			const tagTokens = bm25Tokenize(entry.tags.join(' '));
+			// Weight title and tags higher by repeating tokens
+			return [...titleTokens, ...titleTokens, ...titleTokens, ...tagTokens, ...tagTokens, ...descTokens, ...rationaleTokens];
+		});
+
+		const avgDocLen = docs.reduce((sum, doc) => sum + doc.length, 0) / (docs.length || 1);
+		const k1 = 1.5;
+		const b = 0.75;
+
+		// Compute IDF
+		const idf = new Map<string, number>();
+		for (const term of queryTerms) {
+			const docsContaining = docs.filter(doc => doc.includes(term)).length;
+			idf.set(term, Math.log((docs.length - docsContaining + 0.5) / (docsContaining + 0.5) + 1));
+		}
+
+		const scored = activeEntries.map((entry, idx) => {
+			const doc = docs[idx];
+			let score = 0;
+			for (const term of queryTerms) {
+				const tf = doc.filter(t => t === term).length;
+				const termIdf = idf.get(term) ?? 0;
+				score += termIdf * ((tf * (k1 + 1)) / (tf + k1 * (1 - b + b * (doc.length / avgDocLen))));
+			}
+			return { entry, score };
+		});
+
+		return scored
+			.filter(s => s.score > 0)
+			.sort((a, b) => b.score - a.score)
+			.slice(0, topK)
+			.map(s => s.entry);
 	}
 
 	async getDecisionsByModule(module: string): Promise<DecisionEntry[]> {

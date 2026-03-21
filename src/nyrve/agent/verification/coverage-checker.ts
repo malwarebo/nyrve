@@ -9,6 +9,8 @@ import { InstantiationType, registerSingleton } from '../../../vs/platform/insta
 import { ILogService } from '../../../vs/platform/log/common/log.js';
 import { IConfigurationService } from '../../../vs/platform/configuration/common/configuration.js';
 import { IWorkspaceContextService } from '../../../vs/platform/workspace/common/workspace.js';
+import { IFileService } from '../../../vs/platform/files/common/files.js';
+import { URI } from '../../../vs/base/common/uri.js';
 import { INyrveFrameworkDetector } from './framework-detector.js';
 import { NyrveChangeSet } from '../../ui/diff-review/diff-panel.js';
 
@@ -52,6 +54,7 @@ export class NyrveCoverageChecker extends Disposable implements INyrveCoverageCh
 		@INyrveFrameworkDetector private readonly frameworkDetector: INyrveFrameworkDetector,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IWorkspaceContextService private readonly workspaceContextService: IWorkspaceContextService,
+		@IFileService private readonly fileService: IFileService,
 		@ILogService private readonly logService: ILogService,
 	) {
 		super();
@@ -83,8 +86,8 @@ export class NyrveCoverageChecker extends Disposable implements INyrveCoverageCh
 			// Extract changed lines from the changeset
 			const changedLinesMap = this._extractChangedLines(changeset);
 
-			// Parse coverage output
-			const coverageData = this._parseCoverageOutput(output, config.framework);
+			// Parse coverage report files from disk
+			const coverageData = await this._parseCoverageOutput(output, config.framework);
 
 			// Cross-reference: which changed lines are covered?
 			const fileCoverage: FileCoverageInfo[] = [];
@@ -168,51 +171,60 @@ export class NyrveCoverageChecker extends Disposable implements INyrveCoverageCh
 	}
 
 	/**
-	 * Parse coverage output into a map of file → covered line numbers.
+	 * Parse coverage data by reading coverage report files from disk.
 	 */
-	private _parseCoverageOutput(
-		output: string,
+	private async _parseCoverageOutput(
+		_output: string,
 		framework: string,
-	): Map<string, { coveredLines: number[] }> {
-		const result = new Map<string, { coveredLines: number[] }>();
-
-		// Try to find and parse JSON coverage data
+	): Promise<Map<string, { coveredLines: number[] }>> {
 		try {
 			if (framework === 'jest' || framework === 'vitest') {
-				return this._parseIstanbulCoverage(output);
+				return await this._parseIstanbulCoverage();
 			}
 			if (framework === 'pytest') {
-				return this._parsePyCoverage(output);
+				return await this._parsePyCoverage();
 			}
 			if (framework === 'go test') {
-				return this._parseGoCoverage(output);
+				return await this._parseGoCoverage();
 			}
 		} catch {
-			// Coverage parsing failed, return empty
+			// Coverage parsing failed
 		}
 
-		return result;
+		return new Map();
 	}
 
 	/**
-	 * Parse Istanbul/NYC JSON coverage format (used by Jest and Vitest).
-	 * Expects coverage-final.json in the workspace.
+	 * Parse Istanbul/NYC JSON coverage (Jest/Vitest).
+	 * Reads coverage/coverage-final.json from the workspace root.
 	 */
-	private _parseIstanbulCoverage(_output: string): Map<string, { coveredLines: number[] }> {
+	private async _parseIstanbulCoverage(): Promise<Map<string, { coveredLines: number[] }>> {
 		const result = new Map<string, { coveredLines: number[] }>();
+		const root = this._getWorkspaceRoot();
+		if (!root) {
+			return result;
+		}
 
-		try {
-			// Try to read coverage/coverage-final.json
-			// In a real implementation, we'd read the file; for now parse from output if JSON
-			const jsonMatch = _output.match(/\{[\s\S]*"statementMap"[\s\S]*\}/);
-			if (jsonMatch) {
-				const data = JSON.parse(jsonMatch[0]);
+		const candidatePaths = [
+			'coverage/coverage-final.json',
+			'coverage/coverage-summary.json',
+		];
+
+		for (const candidate of candidatePaths) {
+			try {
+				const uri = URI.joinPath(root, candidate);
+				const content = await this.fileService.readFile(uri);
+				const data = JSON.parse(content.value.toString());
+
 				for (const [file, fileCov] of Object.entries(data)) {
-					const coverage = fileCov as { s: Record<string, number>; statementMap: Record<string, { start: { line: number } }> };
+					const coverage = fileCov as { s?: Record<string, number>; statementMap?: Record<string, { start: { line: number } }> };
+					if (!coverage.s || !coverage.statementMap) {
+						continue;
+					}
 					const coveredLines: number[] = [];
-					for (const [id, count] of Object.entries(coverage.s ?? {})) {
+					for (const [id, count] of Object.entries(coverage.s)) {
 						if (count > 0) {
-							const line = coverage.statementMap?.[id]?.start?.line;
+							const line = coverage.statementMap[id]?.start?.line;
 							if (line) {
 								coveredLines.push(line);
 							}
@@ -220,63 +232,95 @@ export class NyrveCoverageChecker extends Disposable implements INyrveCoverageCh
 					}
 					result.set(file, { coveredLines });
 				}
+				return result;
+			} catch {
+				// Try next candidate
 			}
-		} catch {
-			// Parsing failed
 		}
 
 		return result;
 	}
 
 	/**
-	 * Parse Python coverage.py JSON format.
+	 * Parse Python coverage.py JSON report.
+	 * Reads coverage.json from the workspace root.
 	 */
-	private _parsePyCoverage(_output: string): Map<string, { coveredLines: number[] }> {
+	private async _parsePyCoverage(): Promise<Map<string, { coveredLines: number[] }>> {
 		const result = new Map<string, { coveredLines: number[] }>();
+		const root = this._getWorkspaceRoot();
+		if (!root) {
+			return result;
+		}
 
-		try {
-			const jsonMatch = _output.match(/\{[\s\S]*"files"[\s\S]*\}/);
-			if (jsonMatch) {
-				const data = JSON.parse(jsonMatch[0]);
+		const candidatePaths = [
+			'coverage.json',
+			'.coverage.json',
+			'htmlcov/status.json',
+		];
+
+		for (const candidate of candidatePaths) {
+			try {
+				const uri = URI.joinPath(root, candidate);
+				const content = await this.fileService.readFile(uri);
+				const data = JSON.parse(content.value.toString());
+
 				for (const [file, fileCov] of Object.entries(data.files ?? {})) {
-					const coverage = fileCov as { executed_lines: number[] };
+					const coverage = fileCov as { executed_lines?: number[] };
 					result.set(file, { coveredLines: coverage.executed_lines ?? [] });
 				}
+				return result;
+			} catch {
+				// Try next candidate
 			}
-		} catch {
-			// Parsing failed
 		}
 
 		return result;
 	}
 
 	/**
-	 * Parse Go coverage profile format.
+	 * Parse Go coverage profile.
+	 * Reads coverage.out from the workspace root.
 	 */
-	private _parseGoCoverage(output: string): Map<string, { coveredLines: number[] }> {
+	private async _parseGoCoverage(): Promise<Map<string, { coveredLines: number[] }>> {
 		const result = new Map<string, { coveredLines: number[] }>();
+		const root = this._getWorkspaceRoot();
+		if (!root) {
+			return result;
+		}
 
-		// Go coverage profile: mode: set\nfile.go:start.col,end.col count
-		const linePattern = /^(.+):(\d+)\.\d+,(\d+)\.\d+\s+\d+\s+(\d+)/gm;
-		let match: RegExpExecArray | null;
-		while ((match = linePattern.exec(output)) !== null) {
-			const file = match[1];
-			const startLine = parseInt(match[2], 10);
-			const endLine = parseInt(match[3], 10);
-			const count = parseInt(match[4], 10);
+		try {
+			const uri = URI.joinPath(root, 'coverage.out');
+			const content = await this.fileService.readFile(uri);
+			const output = content.value.toString();
 
-			if (count > 0) {
-				if (!result.has(file)) {
-					result.set(file, { coveredLines: [] });
-				}
-				const entry = result.get(file)!;
-				for (let line = startLine; line <= endLine; line++) {
-					entry.coveredLines.push(line);
+			const linePattern = /^(.+):(\d+)\.\d+,(\d+)\.\d+\s+\d+\s+(\d+)/gm;
+			let match: RegExpExecArray | null;
+			while ((match = linePattern.exec(output)) !== null) {
+				const file = match[1];
+				const startLine = parseInt(match[2], 10);
+				const endLine = parseInt(match[3], 10);
+				const count = parseInt(match[4], 10);
+
+				if (count > 0) {
+					if (!result.has(file)) {
+						result.set(file, { coveredLines: [] });
+					}
+					const entry = result.get(file)!;
+					for (let line = startLine; line <= endLine; line++) {
+						entry.coveredLines.push(line);
+					}
 				}
 			}
+		} catch {
+			// File not found
 		}
 
 		return result;
+	}
+
+	private _getWorkspaceRoot(): URI | undefined {
+		const folders = this.workspaceContextService.getWorkspace().folders;
+		return folders.length > 0 ? folders[0].uri : undefined;
 	}
 
 	private _skippedResult(reason: string): CoverageResult {

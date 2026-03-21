@@ -152,7 +152,7 @@ export class NyrveProjectDNAService
 		super();
 
 		this.configScanner = new NyrveConfigScanner(fileService, logService);
-		this.structureScanner = new NyrveStructureScanner(indexManager, logService);
+		this.structureScanner = new NyrveStructureScanner(indexManager, fileService, workspaceContextService, logService);
 		this.gitAnalyzer = new NyrveGitAnalyzer(
 			workspaceContextService,
 			logService,

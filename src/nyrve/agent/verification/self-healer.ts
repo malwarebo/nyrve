@@ -45,6 +45,10 @@ export interface VerificationAttempt {
 	readonly result: 'fixed' | 'partially_fixed' | 'could_not_fix';
 }
 
+interface SelfHealFixWithContent extends SelfHealFix {
+	readonly newContent: string;
+}
+
 // --- Service Interface ---
 
 export const INyrveSelfHealer = createDecorator<INyrveSelfHealer>('nyrveSelfHealer');
@@ -131,7 +135,7 @@ export class NyrveSelfHealer extends Disposable implements INyrveSelfHealer {
 			const fixes = this._parseFixesFromResponse(response.content, changeset, failures);
 
 			// Validate fixes — agent cannot delete/skip tests
-			const validFixes = this._validateFixes(fixes, changeset);
+			const validFixes = this._validateFixes(fixes);
 
 			// Apply fixes to the changeset
 			const updatedChangeset = this._applyFixes(changeset, validFixes);
@@ -227,8 +231,8 @@ export class NyrveSelfHealer extends Disposable implements INyrveSelfHealer {
 		response: string,
 		changeset: NyrveChangeSet,
 		failures: VerificationFailure[],
-	): SelfHealFix[] {
-		const fixes: SelfHealFix[] = [];
+	): SelfHealFixWithContent[] {
+		const fixes: SelfHealFixWithContent[] = [];
 
 		// Parse "### FILE: <path>" blocks
 		const filePattern = /### FILE:\s*(.+?)\n```(?:\w*)\n([\s\S]*?)```/g;
@@ -236,7 +240,7 @@ export class NyrveSelfHealer extends Disposable implements INyrveSelfHealer {
 
 		while ((match = filePattern.exec(response)) !== null) {
 			const filePath = match[1].trim();
-			const content = match[2];
+			const newContent = match[2];
 
 			// Find which failures this fix addresses
 			const relatedFailures = failures.filter(f => f.file === filePath);
@@ -252,7 +256,8 @@ export class NyrveSelfHealer extends Disposable implements INyrveSelfHealer {
 				failure: relatedFailures[0],
 				fixDescription: `Fixed ${relatedFailures.length} issue(s) in ${filePath}`,
 				filesModified: [filePath],
-				diff: this._computeSimpleDiff(previousContent, content),
+				diff: this._computeSimpleDiff(previousContent, newContent),
+				newContent,
 			});
 		}
 
@@ -263,7 +268,7 @@ export class NyrveSelfHealer extends Disposable implements INyrveSelfHealer {
 	 * Validate that fixes don't delete or skip tests.
 	 * The agent CANNOT delete tests, skip tests, or use .todo/.skip to pass.
 	 */
-	private _validateFixes(fixes: SelfHealFix[], _changeset: NyrveChangeSet): SelfHealFix[] {
+	private _validateFixes(fixes: SelfHealFixWithContent[]): SelfHealFixWithContent[] {
 		return fixes.filter(fix => {
 			const diff = fix.diff;
 
@@ -294,23 +299,20 @@ export class NyrveSelfHealer extends Disposable implements INyrveSelfHealer {
 	/**
 	 * Apply fixes to the changeset, producing an updated changeset.
 	 */
-	private _applyFixes(changeset: NyrveChangeSet, fixes: SelfHealFix[]): NyrveChangeSet {
-		const fileFixMap = new Map<string, string>();
+	private _applyFixes(changeset: NyrveChangeSet, fixes: SelfHealFixWithContent[]): NyrveChangeSet {
+		const fileContentMap = new Map<string, string>();
 		for (const fix of fixes) {
-			// Parse the new content from the diff (in practice, we'd store the content directly)
-			// For now, we use the fix's diff as the new content indicator
 			for (const file of fix.filesModified) {
-				fileFixMap.set(file, fix.diff);
+				fileContentMap.set(file, fix.newContent);
 			}
 		}
 
-		// Since we stored full content in _parseFixesFromResponse, re-parse
-		// For simplicity, create updated files
 		const updatedFiles: NyrveFileChange[] = changeset.files.map(file => {
-			if (fileFixMap.has(file.filePath)) {
+			const newContent = fileContentMap.get(file.filePath);
+			if (newContent !== undefined) {
 				return {
 					...file,
-					proposedContent: file.proposedContent, // In real impl, we'd update with the fix content
+					proposedContent: newContent,
 					hunks: file.hunks,
 				};
 			}

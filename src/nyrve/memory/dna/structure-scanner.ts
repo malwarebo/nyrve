@@ -4,6 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ILogService } from '../../../vs/platform/log/common/log.js';
+import { IFileService } from '../../../vs/platform/files/common/files.js';
+import { URI } from '../../../vs/base/common/uri.js';
+import { IWorkspaceContextService } from '../../../vs/platform/workspace/common/workspace.js';
 import { INyrveIndexManager } from '../../indexer/index-manager.js';
 
 // --- Types ---
@@ -36,6 +39,8 @@ export interface StructureScanResult {
 export class NyrveStructureScanner {
 	constructor(
 		private readonly indexManager: INyrveIndexManager,
+		private readonly fileService: IFileService,
+		private readonly workspaceContextService: IWorkspaceContextService,
 		private readonly logService: ILogService,
 	) { }
 
@@ -62,8 +67,8 @@ export class NyrveStructureScanner {
 		// Detect architecture type
 		const architectureType = this._detectArchitectureType(modules);
 
-		// Build dependency graph (simplified — from index symbols)
-		const dependencyGraph = this._buildDependencyGraph(modules);
+		// Build dependency graph from actual imports
+		const dependencyGraph = await this._buildDependencyGraph(modules);
 
 		// Detect layering patterns
 		const layering = this._detectLayering(dependencyGraph, modules);
@@ -166,56 +171,102 @@ export class NyrveStructureScanner {
 		return 'monolith';
 	}
 
-	private _buildDependencyGraph(modules: ModuleInfo[]): DependencyEdge[] {
-		// Simplified: analyze file-level dependencies from the index
-		// In a full implementation, we'd parse import statements
-		const edges: DependencyEdge[] = [];
-		const modulePaths = modules.map(m => m.path);
+	private async _buildDependencyGraph(modules: ModuleInfo[]): Promise<DependencyEdge[]> {
+		const root = this._getWorkspaceRoot();
+		if (!root) {
+			return [];
+		}
 
-		// For now, detect dependencies based on naming conventions
-		// A full implementation would use the import graph from the index
-		for (let i = 0; i < modulePaths.length; i++) {
-			for (let j = 0; j < modulePaths.length; j++) {
-				if (i !== j) {
-					// Check if any file in module i imports from module j
-					const fromModule = modules[i];
-					const toModule = modules[j];
+		const modulePathSet = new Map<string, ModuleInfo>();
+		for (const mod of modules) {
+			modulePathSet.set(mod.path, mod);
+		}
 
-					// Heuristic: common layering patterns
-					if (this._isLikelyDependency(fromModule.name, toModule.name)) {
-						edges.push({
-							from: fromModule.path,
-							to: toModule.path,
-							importCount: 1,
-						});
+		const edgeCounts = new Map<string, number>();
+
+		// Sample files from each module and parse their imports
+		const allFiles = this.indexManager.searchFiles('');
+		const maxFilesPerModule = 50;
+		const filesByModule = new Map<string, string[]>();
+
+		for (const filePath of allFiles) {
+			for (const mod of modules) {
+				if (filePath.startsWith(mod.path + '/')) {
+					if (!filesByModule.has(mod.path)) {
+						filesByModule.set(mod.path, []);
+					}
+					const files = filesByModule.get(mod.path)!;
+					if (files.length < maxFilesPerModule) {
+						files.push(filePath);
+					}
+					break;
+				}
+			}
+		}
+
+		for (const [modulePath, files] of filesByModule) {
+			for (const filePath of files) {
+				const imports = await this._extractFileImports(root, filePath);
+				for (const importPath of imports) {
+					// Resolve which module this import targets
+					for (const targetMod of modules) {
+						if (targetMod.path !== modulePath && importPath.includes(targetMod.path)) {
+							const key = `${modulePath}→${targetMod.path}`;
+							edgeCounts.set(key, (edgeCounts.get(key) ?? 0) + 1);
+						}
 					}
 				}
 			}
 		}
 
+		const edges: DependencyEdge[] = [];
+		for (const [key, count] of edgeCounts) {
+			const [from, to] = key.split('→');
+			edges.push({ from, to, importCount: count });
+		}
+
 		return edges;
 	}
 
-	private _isLikelyDependency(from: string, to: string): boolean {
-		const layeringRules: Array<[string, string]> = [
-			['routes', 'controllers'],
-			['controllers', 'services'],
-			['services', 'repositories'],
-			['repositories', 'models'],
-			['handlers', 'services'],
-			['api', 'services'],
-			['ui', 'services'],
-			['views', 'models'],
-			['pages', 'components'],
-			['components', 'hooks'],
-		];
+	private async _extractFileImports(root: URI, filePath: string): Promise<string[]> {
+		try {
+			const uri = URI.joinPath(root, filePath);
+			const content = await this.fileService.readFile(uri);
+			const text = content.value.toString();
+			const imports: string[] = [];
 
-		for (const [f, t] of layeringRules) {
-			if (from.toLowerCase().includes(f) && to.toLowerCase().includes(t)) {
-				return true;
+			// TypeScript/JavaScript imports
+			const tsPattern = /(?:import|export)\s+.*?\s+from\s+['"](.+?)['"]/g;
+			let match: RegExpExecArray | null;
+			while ((match = tsPattern.exec(text)) !== null) {
+				imports.push(match[1]);
 			}
+
+			// Python imports
+			if (filePath.endsWith('.py')) {
+				const pyPattern = /^(?:from\s+(\S+)\s+import|import\s+(\S+))/gm;
+				while ((match = pyPattern.exec(text)) !== null) {
+					imports.push(match[1] ?? match[2]);
+				}
+			}
+
+			// Go imports
+			if (filePath.endsWith('.go')) {
+				const goPattern = /^\s*"(.+?)"/gm;
+				while ((match = goPattern.exec(text)) !== null) {
+					imports.push(match[1]);
+				}
+			}
+
+			return imports;
+		} catch {
+			return [];
 		}
-		return false;
+	}
+
+	private _getWorkspaceRoot(): URI | undefined {
+		const folders = this.workspaceContextService.getWorkspace().folders;
+		return folders.length > 0 ? folders[0].uri : undefined;
 	}
 
 	private _detectLayering(graph: DependencyEdge[], modules: ModuleInfo[]): string[] {

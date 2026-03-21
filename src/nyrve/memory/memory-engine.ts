@@ -14,6 +14,18 @@ import { IWorkspaceContextService } from '../../vs/platform/workspace/common/wor
 import { IConfigurationService } from '../../vs/platform/configuration/common/configuration.js';
 import { VSBuffer } from '../../vs/base/common/buffer.js';
 
+// --- Text Utilities ---
+
+const STOP_WORDS = new Set(['a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'shall', 'can', 'to', 'of', 'in', 'for', 'on', 'with', 'at', 'by', 'from', 'as', 'into', 'through', 'during', 'before', 'after', 'and', 'but', 'or', 'not', 'no', 'if', 'then', 'than', 'that', 'this', 'it', 'its', 'we', 'they', 'i', 'you', 'he', 'she']);
+
+function tokenize(text: string): string[] {
+	return text
+		.toLowerCase()
+		.replace(/[^a-z0-9_\-]/g, ' ')
+		.split(/\s+/)
+		.filter(t => t.length > 1 && !STOP_WORDS.has(t));
+}
+
 // --- Types ---
 
 export enum MemoryType {
@@ -229,11 +241,43 @@ export class NyrveMemoryEngine extends Disposable implements INyrveMemoryEngine 
 	}
 
 	searchByContent(query: string, maxResults: number = 10): readonly MemoryEntry[] {
-		const lowerQuery = query.toLowerCase();
-		return this.getAllMemories()
-			.filter(m => m.content.toLowerCase().includes(lowerQuery) || m.tags.some(t => t.toLowerCase().includes(lowerQuery)))
-			.sort((a, b) => b.confidence - a.confidence)
-			.slice(0, maxResults);
+		const queryTerms = tokenize(query);
+		if (queryTerms.length === 0) {
+			return [];
+		}
+
+		const allMemories = this.getAllMemories();
+		const corpus = allMemories.map(m => tokenize(m.content + ' ' + m.tags.join(' ')));
+		const avgDocLen = corpus.reduce((sum, doc) => sum + doc.length, 0) / (corpus.length || 1);
+
+		// Compute IDF for each query term
+		const idf = new Map<string, number>();
+		for (const term of queryTerms) {
+			const docsContaining = corpus.filter(doc => doc.includes(term)).length;
+			idf.set(term, Math.log((corpus.length - docsContaining + 0.5) / (docsContaining + 0.5) + 1));
+		}
+
+		const k1 = 1.5;
+		const b = 0.75;
+
+		const scored = allMemories.map((memory, idx) => {
+			const doc = corpus[idx];
+			let score = 0;
+			for (const term of queryTerms) {
+				const tf = doc.filter(t => t === term).length;
+				const termIdf = idf.get(term) ?? 0;
+				score += termIdf * ((tf * (k1 + 1)) / (tf + k1 * (1 - b + b * (doc.length / avgDocLen))));
+			}
+			// Blend BM25 score with confidence
+			score *= (0.5 + 0.5 * memory.confidence);
+			return { memory, score };
+		});
+
+		return scored
+			.filter(s => s.score > 0)
+			.sort((a, b) => b.score - a.score)
+			.slice(0, maxResults)
+			.map(s => s.memory);
 	}
 
 	searchByType(type: MemoryType): readonly MemoryEntry[] {
