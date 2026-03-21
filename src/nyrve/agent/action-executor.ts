@@ -3,16 +3,24 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { URI } from '../../vs/base/common/uri.js';
-import { VSBuffer } from '../../vs/base/common/buffer.js';
-import { Disposable } from '../../vs/base/common/lifecycle.js';
-import { createDecorator } from '../../vs/platform/instantiation/common/instantiation.js';
-import { InstantiationType, registerSingleton } from '../../vs/platform/instantiation/common/extensions.js';
-import { IFileService } from '../../vs/platform/files/common/files.js';
-import { ILogService } from '../../vs/platform/log/common/log.js';
-import { ITextFileService } from '../../vs/workbench/services/textfile/common/textfiles.js';
-import { ITerminalService } from '../../vs/workbench/contrib/terminal/browser/terminal.js';
-import { NyrveActionType, NyrveConfirmationResult, INyrveConfirmationService } from './confirmation.js';
+import { URI } from "../../vs/base/common/uri.js";
+import { VSBuffer } from "../../vs/base/common/buffer.js";
+import { Disposable } from "../../vs/base/common/lifecycle.js";
+import { createDecorator } from "../../vs/platform/instantiation/common/instantiation.js";
+import {
+	InstantiationType,
+	registerSingleton,
+} from "../../vs/platform/instantiation/common/extensions.js";
+import { IFileService } from "../../vs/platform/files/common/files.js";
+import { ILogService } from "../../vs/platform/log/common/log.js";
+import { ITextFileService } from "../../vs/workbench/services/textfile/common/textfiles.js";
+import { ITerminalService } from "../../vs/workbench/contrib/terminal/browser/terminal.js";
+import { TerminalCapability } from "../../vs/platform/terminal/common/capabilities/capabilities.js";
+import {
+	NyrveActionType,
+	NyrveConfirmationResult,
+	INyrveConfirmationService,
+} from "./confirmation.js";
 
 // --- Types ---
 
@@ -35,7 +43,9 @@ export interface TerminalCommandResult {
 
 // --- Service Interface ---
 
-export const INyrveActionExecutor = createDecorator<INyrveActionExecutor>('nyrveActionExecutor');
+export const INyrveActionExecutor = createDecorator<INyrveActionExecutor>(
+	"nyrveActionExecutor",
+);
 
 export interface INyrveActionExecutor {
 	readonly _serviceBrand: undefined;
@@ -48,10 +58,18 @@ export interface INyrveActionExecutor {
 	 * In non-autonomous mode, changes go to the NyrveDiffService for review.
 	 * In autonomous mode, writes directly.
 	 */
-	writeFile(filePath: string, content: string, description: string): Promise<FileWriteResult>;
+	writeFile(
+		filePath: string,
+		content: string,
+		description: string,
+	): Promise<FileWriteResult>;
 
 	/** Create a new file. Requests confirmation if needed. */
-	createFile(filePath: string, content: string, description: string): Promise<FileWriteResult>;
+	createFile(
+		filePath: string,
+		content: string,
+		description: string,
+	): Promise<FileWriteResult>;
 
 	/** Execute a terminal command. Requests confirmation. */
 	executeCommand(command: string, cwd?: string): Promise<TerminalCommandResult>;
@@ -59,11 +77,15 @@ export interface INyrveActionExecutor {
 
 // --- Service Implementation ---
 
-export class NyrveActionExecutor extends Disposable implements INyrveActionExecutor {
+export class NyrveActionExecutor
+	extends Disposable
+	implements INyrveActionExecutor
+{
 	declare readonly _serviceBrand: undefined;
 
 	constructor(
-		@INyrveConfirmationService private readonly confirmationService: INyrveConfirmationService,
+		@INyrveConfirmationService
+		private readonly confirmationService: INyrveConfirmationService,
 		@IFileService private readonly fileService: IFileService,
 		@ITextFileService private readonly textFileService: ITextFileService,
 		@ITerminalService private readonly terminalService: ITerminalService,
@@ -85,7 +107,9 @@ export class NyrveActionExecutor extends Disposable implements INyrveActionExecu
 
 		const uri = URI.file(filePath);
 		const fileContent = await this.textFileService.read(uri);
-		this.logService.trace(`[Nyrve] Read file: ${filePath} (${fileContent.value.length} chars)`);
+		this.logService.trace(
+			`[Nyrve] Read file: ${filePath} (${fileContent.value.length} chars)`,
+		);
 
 		return {
 			content: fileContent.value,
@@ -94,7 +118,11 @@ export class NyrveActionExecutor extends Disposable implements INyrveActionExecu
 		};
 	}
 
-	async writeFile(filePath: string, content: string, description: string): Promise<FileWriteResult> {
+	async writeFile(
+		filePath: string,
+		content: string,
+		description: string,
+	): Promise<FileWriteResult> {
 		const result = await this.confirmationService.confirmAction({
 			type: NyrveActionType.FileWrite,
 			description,
@@ -107,7 +135,9 @@ export class NyrveActionExecutor extends Disposable implements INyrveActionExecu
 
 		const uri = URI.file(filePath);
 		await this.textFileService.write(uri, content);
-		this.logService.info(`[Nyrve] Wrote file: ${filePath} (${content.length} chars)`);
+		this.logService.info(
+			`[Nyrve] Wrote file: ${filePath} (${content.length} chars)`,
+		);
 
 		return {
 			filePath,
@@ -115,7 +145,11 @@ export class NyrveActionExecutor extends Disposable implements INyrveActionExecu
 		};
 	}
 
-	async createFile(filePath: string, content: string, description: string): Promise<FileWriteResult> {
+	async createFile(
+		filePath: string,
+		content: string,
+		description: string,
+	): Promise<FileWriteResult> {
 		const result = await this.confirmationService.confirmAction({
 			type: NyrveActionType.FileCreate,
 			description,
@@ -128,7 +162,9 @@ export class NyrveActionExecutor extends Disposable implements INyrveActionExecu
 
 		const uri = URI.file(filePath);
 		await this.fileService.createFile(uri, VSBuffer.fromString(content));
-		this.logService.info(`[Nyrve] Created file: ${filePath} (${content.length} chars)`);
+		this.logService.info(
+			`[Nyrve] Created file: ${filePath} (${content.length} chars)`,
+		);
 
 		return {
 			filePath,
@@ -136,7 +172,10 @@ export class NyrveActionExecutor extends Disposable implements INyrveActionExecu
 		};
 	}
 
-	async executeCommand(command: string, cwd?: string): Promise<TerminalCommandResult> {
+	async executeCommand(
+		command: string,
+		cwd?: string,
+	): Promise<TerminalCommandResult> {
 		const result = await this.confirmationService.confirmAction({
 			type: NyrveActionType.TerminalCommand,
 			description: `Execute: ${command}`,
@@ -153,30 +192,93 @@ export class NyrveActionExecutor extends Disposable implements INyrveActionExecu
 			cwd: cwd ? URI.file(cwd) : undefined,
 		});
 
-		// Collect output
-		let output = '';
-		const dataListener = this.terminalService.onAnyInstanceData(e => {
+		let output = "";
+		const dataListener = this.terminalService.onAnyInstanceData((e) => {
 			if (e.instance === terminal) {
 				output += e.data;
 			}
 		});
 
 		try {
-			await terminal.sendText(command, true);
+			const commandDetection = terminal.capabilities.get(
+				TerminalCapability.CommandDetection,
+			);
 
-			// Wait for command to complete (simplified — full implementation would
-			// track shell integration events or exit codes)
-			await new Promise<void>(resolve => setTimeout(resolve, 2000));
+			if (commandDetection) {
+				const exitCode = await this._executeWithShellIntegration(
+					terminal,
+					command,
+					commandDetection,
+				);
+				return { command, exitCode, output };
+			}
 
-			return {
-				command,
-				exitCode: undefined, // Terminal instances don't expose exit codes easily
-				output,
-			};
+			return await this._executeWithTimeout(terminal, command, output);
 		} finally {
 			dataListener.dispose();
 		}
 	}
+
+	private async _executeWithShellIntegration(
+		terminal: import("../../vs/workbench/contrib/terminal/browser/terminal.js").ITerminalInstance,
+		command: string,
+		commandDetection: import("../../vs/platform/terminal/common/capabilities/capabilities.js").ICommandDetectionCapability,
+	): Promise<number | undefined> {
+		return new Promise<number | undefined>((resolve, reject) => {
+			const timeout = 120_000;
+			const timer = setTimeout(() => {
+				listener.dispose();
+				this.logService.warn(
+					`[Nyrve] Command timed out after ${timeout}ms: ${command}`,
+				);
+				resolve(undefined);
+			}, timeout);
+
+			const listener = commandDetection.onCommandFinished((finishedCommand) => {
+				clearTimeout(timer);
+				listener.dispose();
+				resolve(finishedCommand.exitCode);
+			});
+
+			terminal.sendText(command, true).catch((e) => {
+				clearTimeout(timer);
+				listener.dispose();
+				reject(e);
+			});
+		});
+	}
+
+	private async _executeWithTimeout(
+		terminal: import("../../vs/workbench/contrib/terminal/browser/terminal.js").ITerminalInstance,
+		command: string,
+		output: string,
+	): Promise<TerminalCommandResult> {
+		this.logService.trace(
+			"[Nyrve] Shell integration unavailable, falling back to exit-event detection",
+		);
+
+		await terminal.sendText(command, true);
+
+		const exitCode = await new Promise<number | undefined>((resolve) => {
+			const timeout = 120_000;
+			const timer = setTimeout(() => {
+				exitListener.dispose();
+				resolve(undefined);
+			}, timeout);
+
+			const exitListener = terminal.onExit((code) => {
+				clearTimeout(timer);
+				exitListener.dispose();
+				resolve(typeof code === "number" ? code : undefined);
+			});
+		});
+
+		return { command, exitCode, output };
+	}
 }
 
-registerSingleton(INyrveActionExecutor, NyrveActionExecutor, InstantiationType.Delayed);
+registerSingleton(
+	INyrveActionExecutor,
+	NyrveActionExecutor,
+	InstantiationType.Delayed,
+);

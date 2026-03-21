@@ -3,41 +3,47 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event, Emitter } from '../../vs/base/common/event.js';
-import { Disposable, DisposableStore } from '../../vs/base/common/lifecycle.js';
-import { createDecorator } from '../../vs/platform/instantiation/common/instantiation.js';
-import { InstantiationType, registerSingleton } from '../../vs/platform/instantiation/common/extensions.js';
-import { IConfigurationService } from '../../vs/platform/configuration/common/configuration.js';
-import { ILogService } from '../../vs/platform/log/common/log.js';
-import { ITextFileService } from '../../vs/workbench/services/textfile/common/textfiles.js';
-import { INyrveAgentEngine } from './agent-engine.js';
-import { INyrveTokenTracker } from './token-tracker.js';
+import { CancellationTokenSource } from "../../vs/base/common/cancellation.js";
+import { Event, Emitter } from "../../vs/base/common/event.js";
+import { Disposable, DisposableStore } from "../../vs/base/common/lifecycle.js";
+import { URI } from "../../vs/base/common/uri.js";
+import { createDecorator } from "../../vs/platform/instantiation/common/instantiation.js";
+import {
+	InstantiationType,
+	registerSingleton,
+} from "../../vs/platform/instantiation/common/extensions.js";
+import { IConfigurationService } from "../../vs/platform/configuration/common/configuration.js";
+import { ILogService } from "../../vs/platform/log/common/log.js";
+import { ITextFileService } from "../../vs/workbench/services/textfile/common/textfiles.js";
+import { INyrveAgentEngine } from "./agent-engine.js";
+import { INyrveModelRouter } from "./model-router.js";
+import { INyrveTokenTracker } from "./token-tracker.js";
 
 // --- Types ---
 
 export const enum SuggestionType {
-	BugDetection = 'bug_detection',
-	SecurityWarning = 'security_warning',
-	PerformanceTip = 'performance_tip',
-	CodeQuality = 'code_quality',
-	TestSuggestion = 'test_suggestion',
-	RefactorOpportunity = 'refactor_opportunity',
-	DependencyAlert = 'dependency_alert',
-	Documentation = 'documentation',
+	BugDetection = "bug_detection",
+	SecurityWarning = "security_warning",
+	PerformanceTip = "performance_tip",
+	CodeQuality = "code_quality",
+	TestSuggestion = "test_suggestion",
+	RefactorOpportunity = "refactor_opportunity",
+	DependencyAlert = "dependency_alert",
+	Documentation = "documentation",
 }
 
 export const enum SuggestionCategory {
-	Correctness = 'correctness',
-	Security = 'security',
-	Performance = 'performance',
-	Maintainability = 'maintainability',
-	Testing = 'testing',
+	Correctness = "correctness",
+	Security = "security",
+	Performance = "performance",
+	Maintainability = "maintainability",
+	Testing = "testing",
 }
 
 export interface BackgroundSuggestion {
 	readonly id: string;
 	readonly type: SuggestionType;
-	readonly severity: 'info' | 'warning' | 'critical';
+	readonly severity: "info" | "warning" | "critical";
 	readonly title: string;
 	readonly description: string;
 	readonly filePath: string;
@@ -51,15 +57,17 @@ export interface BackgroundSuggestion {
 }
 
 export const enum BackgroundAgentState {
-	Idle = 'idle',
-	Analyzing = 'analyzing',
-	Paused = 'paused',
-	Disabled = 'disabled',
+	Idle = "idle",
+	Analyzing = "analyzing",
+	Paused = "paused",
+	Disabled = "disabled",
 }
 
 // --- Service Interface ---
 
-export const INyrveBackgroundAgent = createDecorator<INyrveBackgroundAgent>('nyrveBackgroundAgent');
+export const INyrveBackgroundAgent = createDecorator<INyrveBackgroundAgent>(
+	"nyrveBackgroundAgent",
+);
 
 export interface INyrveBackgroundAgent {
 	readonly _serviceBrand: undefined;
@@ -100,17 +108,29 @@ export interface INyrveBackgroundAgent {
 
 // --- Service Implementation ---
 
-export class NyrveBackgroundAgent extends Disposable implements INyrveBackgroundAgent {
+export class NyrveBackgroundAgent
+	extends Disposable
+	implements INyrveBackgroundAgent
+{
 	declare readonly _serviceBrand: undefined;
 
-	private readonly _onDidChangeState = this._register(new Emitter<BackgroundAgentState>());
-	readonly onDidChangeState: Event<BackgroundAgentState> = this._onDidChangeState.event;
+	private readonly _onDidChangeState = this._register(
+		new Emitter<BackgroundAgentState>(),
+	);
+	readonly onDidChangeState: Event<BackgroundAgentState> =
+		this._onDidChangeState.event;
 
-	private readonly _onDidAddSuggestion = this._register(new Emitter<BackgroundSuggestion>());
-	readonly onDidAddSuggestion: Event<BackgroundSuggestion> = this._onDidAddSuggestion.event;
+	private readonly _onDidAddSuggestion = this._register(
+		new Emitter<BackgroundSuggestion>(),
+	);
+	readonly onDidAddSuggestion: Event<BackgroundSuggestion> =
+		this._onDidAddSuggestion.event;
 
-	private readonly _onDidRemoveSuggestion = this._register(new Emitter<string>());
-	readonly onDidRemoveSuggestion: Event<string> = this._onDidRemoveSuggestion.event;
+	private readonly _onDidRemoveSuggestion = this._register(
+		new Emitter<string>(),
+	);
+	readonly onDidRemoveSuggestion: Event<string> =
+		this._onDidRemoveSuggestion.event;
 
 	private _state: BackgroundAgentState = BackgroundAgentState.Disabled;
 	private readonly _suggestions = new Map<string, BackgroundSuggestion>();
@@ -122,31 +142,41 @@ export class NyrveBackgroundAgent extends Disposable implements INyrveBackground
 	}
 
 	constructor(
-		@INyrveAgentEngine _agentEngine: INyrveAgentEngine,
-		@INyrveTokenTracker _tokenTracker: INyrveTokenTracker,
+		@INyrveAgentEngine private readonly agentEngine: INyrveAgentEngine,
+		@INyrveModelRouter private readonly modelRouter: INyrveModelRouter,
+		@INyrveTokenTracker private readonly tokenTracker: INyrveTokenTracker,
 		@ITextFileService private readonly textFileService: ITextFileService,
-		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@IConfigurationService
+		private readonly configurationService: IConfigurationService,
 		@ILogService private readonly logService: ILogService,
 	) {
 		super();
 
 		// Listen for file saves to trigger analysis
-		this._register(this.textFileService.files.onDidSave(e => {
-			if (this._state === BackgroundAgentState.Idle) {
-				this._debounceAnalysis(e.model.resource.fsPath, 2000);
-			}
-		}));
+		this._register(
+			this.textFileService.files.onDidSave((e) => {
+				if (this._state === BackgroundAgentState.Idle) {
+					this._debounceAnalysis(e.model.resource.fsPath, 2000);
+				}
+			}),
+		);
 	}
 
 	start(): void {
-		const enabled = this.configurationService.getValue<boolean>('nyrve.backgroundAgent.enabled') ?? true;
+		const enabled =
+			this.configurationService.getValue<boolean>(
+				"nyrve.backgroundAgent.enabled",
+			) ?? true;
 		if (!enabled) {
 			this._setState(BackgroundAgentState.Disabled);
 			return;
 		}
 
-		const mode = this.configurationService.getValue<string>('nyrve.backgroundAgent.mode') ?? 'on-save';
-		if (mode === 'off') {
+		const mode =
+			this.configurationService.getValue<string>(
+				"nyrve.backgroundAgent.mode",
+			) ?? "on-save";
+		if (mode === "off") {
 			this._setState(BackgroundAgentState.Disabled);
 			return;
 		}
@@ -168,13 +198,21 @@ export class NyrveBackgroundAgent extends Disposable implements INyrveBackground
 	}
 
 	async analyzeFile(filePath: string): Promise<void> {
-		if (this._state === BackgroundAgentState.Paused || this._state === BackgroundAgentState.Disabled) {
+		if (
+			this._state === BackgroundAgentState.Paused ||
+			this._state === BackgroundAgentState.Disabled
+		) {
 			return;
 		}
 
-		const dailyBudget = this.configurationService.getValue<number>('nyrve.backgroundAgent.dailyTokenBudget') ?? 500000;
+		const dailyBudget =
+			this.configurationService.getValue<number>(
+				"nyrve.backgroundAgent.dailyTokenBudget",
+			) ?? 500000;
 		if (this._todayTokenUsage >= dailyBudget) {
-			this.logService.trace(`[Nyrve] Background agent daily budget exceeded (${this._todayTokenUsage}/${dailyBudget})`);
+			this.logService.trace(
+				`[Nyrve] Background agent daily budget exceeded (${this._todayTokenUsage}/${dailyBudget})`,
+			);
 			return;
 		}
 
@@ -190,18 +228,20 @@ export class NyrveBackgroundAgent extends Disposable implements INyrveBackground
 				this._addSuggestion(suggestion);
 			}
 		} catch (e) {
-			this.logService.warn(`[Nyrve] Background analysis failed for ${filePath}: ${e}`);
+			this.logService.warn(
+				`[Nyrve] Background analysis failed for ${filePath}: ${e}`,
+			);
 		} finally {
 			this._setState(BackgroundAgentState.Idle);
 		}
 	}
 
 	getSuggestions(): readonly BackgroundSuggestion[] {
-		return [...this._suggestions.values()].filter(s => !s.dismissed);
+		return [...this._suggestions.values()].filter((s) => !s.dismissed);
 	}
 
 	getFileSuggestions(filePath: string): readonly BackgroundSuggestion[] {
-		return this.getSuggestions().filter(s => s.filePath === filePath);
+		return this.getSuggestions().filter((s) => s.filePath === filePath);
 	}
 
 	dismissSuggestion(id: string): void {
@@ -225,10 +265,130 @@ export class NyrveBackgroundAgent extends Disposable implements INyrveBackground
 		return this._todayTokenUsage;
 	}
 
-	private async _runAnalysis(_filePath: string): Promise<BackgroundSuggestion[]> {
-		// Infrastructure ready — full implementation will call Claude Haiku via agentEngine
-		// with a specialized system prompt for code analysis.
-		return [];
+	private async _runAnalysis(
+		filePath: string,
+	): Promise<BackgroundSuggestion[]> {
+		const uri = URI.file(filePath);
+		let fileContent: string;
+		try {
+			const file = await this.textFileService.read(uri);
+			fileContent = file.value;
+		} catch {
+			return [];
+		}
+
+		if (!fileContent.trim() || fileContent.length > 50_000) {
+			return [];
+		}
+
+		const cts = new CancellationTokenSource();
+		const timer = setTimeout(() => cts.cancel(), 30_000);
+
+		try {
+			const model = this.modelRouter.getBackgroundModel();
+			const response = await this.agentEngine.sendMessage(
+				{
+					messages: [
+						{ role: "user", content: fileContent, timestamp: Date.now() },
+					],
+					model,
+					systemPrompt: [
+						"You are a background code analyzer. Analyze the given file for bugs, security issues, performance problems, and code quality concerns.",
+						'Respond ONLY with a JSON array of objects. Each object must have: "type" (one of: bug_detection, security_warning, performance_tip, code_quality, test_suggestion, refactor_opportunity), "severity" (info, warning, or critical), "title" (short summary), "description" (explanation), "startLine" (1-based), "endLine" (1-based).',
+						"If there are no issues, respond with an empty array: []",
+						"Do not include markdown fences or any text outside the JSON array.",
+					].join(" "),
+					maxTokens: 2048,
+				},
+				cts.token,
+			);
+
+			this._todayTokenUsage += response.inputTokens + response.outputTokens;
+			this.tokenTracker.recordUsage(
+				model,
+				response.inputTokens,
+				response.outputTokens,
+			);
+
+			return this._parseSuggestions(response.content, filePath);
+		} catch (e) {
+			this.logService.trace(
+				`[Nyrve] Background analysis API call failed for ${filePath}: ${e}`,
+			);
+			return [];
+		} finally {
+			clearTimeout(timer);
+			cts.dispose();
+		}
+	}
+
+	private _parseSuggestions(
+		responseContent: string,
+		filePath: string,
+	): BackgroundSuggestion[] {
+		try {
+			const parsed = JSON.parse(responseContent.trim());
+			if (!Array.isArray(parsed)) {
+				return [];
+			}
+
+			const TYPE_TO_CATEGORY: Record<string, SuggestionCategory> = {
+				bug_detection: SuggestionCategory.Correctness,
+				security_warning: SuggestionCategory.Security,
+				performance_tip: SuggestionCategory.Performance,
+				code_quality: SuggestionCategory.Maintainability,
+				test_suggestion: SuggestionCategory.Testing,
+				refactor_opportunity: SuggestionCategory.Maintainability,
+			};
+
+			const VALID_TYPES = new Set([
+				"bug_detection",
+				"security_warning",
+				"performance_tip",
+				"code_quality",
+				"test_suggestion",
+				"refactor_opportunity",
+				"dependency_alert",
+				"documentation",
+			]);
+			const VALID_SEVERITIES = new Set(["info", "warning", "critical"]);
+
+			return parsed
+				.filter(
+					(item: Record<string, unknown>) =>
+						typeof item.type === "string" &&
+						VALID_TYPES.has(item.type as SuggestionType) &&
+						typeof item.severity === "string" &&
+						VALID_SEVERITIES.has(item.severity) &&
+						typeof item.title === "string" &&
+						typeof item.description === "string" &&
+						typeof item.startLine === "number" &&
+						typeof item.endLine === "number",
+				)
+				.map(
+					(item: Record<string, unknown>): BackgroundSuggestion => ({
+						id: `bg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+						type: item.type as SuggestionType,
+						severity: item.severity as "info" | "warning" | "critical",
+						title: item.title as string,
+						description: item.description as string,
+						filePath,
+						lineRange: {
+							start: item.startLine as number,
+							end: item.endLine as number,
+						},
+						category:
+							TYPE_TO_CATEGORY[item.type as string] ??
+							SuggestionCategory.Maintainability,
+						dismissed: false,
+					}),
+				);
+		} catch {
+			this.logService.trace(
+				`[Nyrve] Failed to parse background analysis response`,
+			);
+			return [];
+		}
 	}
 
 	private _addSuggestion(suggestion: BackgroundSuggestion): void {
@@ -237,7 +397,10 @@ export class NyrveBackgroundAgent extends Disposable implements INyrveBackground
 			return;
 		}
 
-		const minSeverity = this.configurationService.getValue<string>('nyrve.backgroundAgent.minSeverity') ?? 'warning';
+		const minSeverity =
+			this.configurationService.getValue<string>(
+				"nyrve.backgroundAgent.minSeverity",
+			) ?? "warning";
 		if (!this._meetsSeverityThreshold(suggestion.severity, minSeverity)) {
 			return;
 		}
@@ -246,8 +409,11 @@ export class NyrveBackgroundAgent extends Disposable implements INyrveBackground
 		this._onDidAddSuggestion.fire(suggestion);
 	}
 
-	private _meetsSeverityThreshold(severity: string, minSeverity: string): boolean {
-		const levels: Record<string, number> = { 'info': 0, 'warning': 1, 'critical': 2 };
+	private _meetsSeverityThreshold(
+		severity: string,
+		minSeverity: string,
+	): boolean {
+		const levels: Record<string, number> = { info: 0, warning: 1, critical: 2 };
 		return (levels[severity] ?? 0) >= (levels[minSeverity] ?? 0);
 	}
 
@@ -264,4 +430,8 @@ export class NyrveBackgroundAgent extends Disposable implements INyrveBackground
 	}
 }
 
-registerSingleton(INyrveBackgroundAgent, NyrveBackgroundAgent, InstantiationType.Delayed);
+registerSingleton(
+	INyrveBackgroundAgent,
+	NyrveBackgroundAgent,
+	InstantiationType.Delayed,
+);
