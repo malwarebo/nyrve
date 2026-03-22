@@ -1,0 +1,382 @@
+name: Nyrve Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      quality:
+        description: 'Release quality'
+        required: true
+        default: 'insider'
+        type: choice
+        options:
+          - insider
+          - stable
+      platforms:
+        description: 'Platforms to build (comma-separated: linux-x64,darwin-arm64,darwin-x64,win32-x64)'
+        required: true
+        default: 'linux-x64,darwin-arm64,darwin-x64,win32-x64'
+        type: string
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  VSCODE_QUALITY: ${{ github.event.inputs.quality || 'stable' }}
+
+jobs:
+  compile:
+    name: Compile
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install build tools
+        run: sudo apt update -y && sudo apt install -y build-essential pkg-config libx11-dev libx11-xcb-dev libxkbfile-dev libnotify-bin libkrb5-dev
+
+      - name: Install dependencies
+        run: |
+          set -e
+          for i in {1..5}; do
+            npm ci && break
+            if [ $i -eq 5 ]; then
+              echo "Npm install failed too many times" >&2
+              exit 1
+            fi
+            echo "Npm install failed $i, trying again..."
+          done
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: 1
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Type check
+        run: npm run compile-check-ts-native
+
+      - name: Upload compiled source
+        uses: actions/upload-artifact@v7
+        with:
+          name: compiled-source
+          path: |
+            out/
+            out-build/
+          retention-days: 1
+
+  linux-x64:
+    name: Linux x64
+    needs: compile
+    if: contains(github.event.inputs.platforms || 'linux-x64', 'linux-x64')
+    runs-on: ubuntu-latest
+    env:
+      VSCODE_ARCH: x64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install build tools
+        run: |
+          sudo apt update -y
+          sudo apt install -y build-essential pkg-config libx11-dev libx11-xcb-dev \
+            libxkbfile-dev libnotify-bin libkrb5-dev libsecret-1-dev \
+            rpm fakeroot dpkg
+
+      - name: Install dependencies
+        run: |
+          set -e
+          for i in {1..5}; do
+            npm ci && break
+            if [ $i -eq 5 ]; then
+              echo "Npm install failed too many times" >&2
+              exit 1
+            fi
+            echo "Npm install failed $i, trying again..."
+          done
+        env:
+          npm_config_arch: x64
+          VSCODE_ARCH: x64
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download built-in extensions
+        run: node build/lib/builtInExtensions.ts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Electron
+        run: npm exec -- npm-run-all2 -lp "electron x64"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compile
+        run: npm run gulp compile-build
+
+      - name: Compile extensions
+        run: npm run gulp compile-extensions-build
+
+      - name: Package .deb
+        run: npm run gulp "vscode-linux-x64-build-deb"
+
+      - name: Package .rpm
+        run: npm run gulp "vscode-linux-x64-build-rpm"
+
+      - name: Package .tar.gz
+        run: npm run gulp "vscode-linux-x64-min"
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: nyrve-linux-x64
+          path: |
+            .build/linux/deb/amd64/deb/*.deb
+            .build/linux/rpm/x86_64/*.rpm
+            .build/linux/nyrve-*.tar.gz
+          if-no-files-found: warn
+
+  darwin-arm64:
+    name: macOS arm64
+    needs: compile
+    if: contains(github.event.inputs.platforms || 'darwin-arm64', 'darwin-arm64')
+    runs-on: macos-14
+    env:
+      VSCODE_ARCH: arm64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install dependencies
+        run: |
+          set -e
+          python3 -m pip install --break-system-packages setuptools
+          for i in {1..5}; do
+            npm ci && break
+            if [ $i -eq 5 ]; then
+              echo "Npm install failed too many times" >&2
+              exit 1
+            fi
+            echo "Npm install failed $i, trying again..."
+          done
+        env:
+          npm_config_arch: arm64
+          VSCODE_ARCH: arm64
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GYP_DEFINES: "kerberos_use_rtld=false"
+
+      - name: Download built-in extensions
+        run: node build/lib/builtInExtensions.ts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Electron
+        run: npm exec -- npm-run-all2 -lp "electron arm64"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compile
+        run: npm run gulp compile-build
+
+      - name: Compile extensions
+        run: npm run gulp compile-extensions-build
+
+      - name: Package .app
+        run: npm run gulp "vscode-darwin-arm64-min"
+
+      - name: Create .zip
+        run: |
+          cd .build/darwin-arm64
+          zip -r -y ../../nyrve-darwin-arm64.zip Nyrve.app
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: nyrve-darwin-arm64
+          path: nyrve-darwin-arm64.zip
+          if-no-files-found: warn
+
+  darwin-x64:
+    name: macOS x64
+    needs: compile
+    if: contains(github.event.inputs.platforms || 'darwin-x64', 'darwin-x64')
+    runs-on: macos-15-intel
+    env:
+      VSCODE_ARCH: x64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install dependencies
+        run: |
+          set -e
+          python3 -m pip install --break-system-packages setuptools
+          for i in {1..5}; do
+            npm ci && break
+            if [ $i -eq 5 ]; then
+              echo "Npm install failed too many times" >&2
+              exit 1
+            fi
+            echo "Npm install failed $i, trying again..."
+          done
+        env:
+          npm_config_arch: x64
+          VSCODE_ARCH: x64
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GYP_DEFINES: "kerberos_use_rtld=false"
+
+      - name: Download built-in extensions
+        run: node build/lib/builtInExtensions.ts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Electron
+        run: npm exec -- npm-run-all2 -lp "electron x64"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compile
+        run: npm run gulp compile-build
+
+      - name: Compile extensions
+        run: npm run gulp compile-extensions-build
+
+      - name: Package .app
+        run: npm run gulp "vscode-darwin-x64-min"
+
+      - name: Create .zip
+        run: |
+          cd .build/darwin-x64
+          zip -r -y ../../nyrve-darwin-x64.zip Nyrve.app
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: nyrve-darwin-x64
+          path: nyrve-darwin-x64.zip
+          if-no-files-found: warn
+
+  win32-x64:
+    name: Windows x64
+    needs: compile
+    if: contains(github.event.inputs.platforms || 'win32-x64', 'win32-x64')
+    runs-on: windows-latest
+    env:
+      VSCODE_ARCH: x64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          . build/azure-pipelines/win32/exec.ps1
+          $ErrorActionPreference = "Stop"
+          for ($i = 1; $i -le 5; $i++) {
+            try {
+              exec { npm ci }
+              break
+            }
+            catch {
+              if ($i -eq 5) {
+                Write-Error "npm ci failed after 5 attempts"
+                throw
+              }
+              Write-Host "npm ci failed attempt $i, retrying..."
+              Start-Sleep -Seconds 2
+            }
+          }
+        env:
+          npm_config_arch: x64
+          npm_config_foreground_scripts: "true"
+          VSCODE_ARCH: x64
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download built-in extensions
+        run: node build/lib/builtInExtensions.ts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Electron
+        shell: pwsh
+        run: npm exec -- npm-run-all2 -lp "electron x64"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compile
+        shell: pwsh
+        run: npm run gulp compile-build
+
+      - name: Compile extensions
+        shell: pwsh
+        run: npm run gulp compile-extensions-build
+
+      - name: Package
+        shell: pwsh
+        run: npm run gulp "vscode-win32-x64-min"
+
+      - name: Create .zip
+        shell: pwsh
+        run: |
+          Compress-Archive -Path ".build\win32-x64\Nyrve-win32-x64\*" -DestinationPath "nyrve-win32-x64.zip"
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: nyrve-win32-x64
+          path: nyrve-win32-x64.zip
+          if-no-files-found: warn
+
+  create-release:
+    name: Create Release
+    needs: [linux-x64, darwin-arm64, darwin-x64, win32-x64]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List artifacts
+        run: find artifacts -type f | sort
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: true
+          files: |
+            artifacts/**/*.deb
+            artifacts/**/*.rpm
+            artifacts/**/*.tar.gz
+            artifacts/**/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

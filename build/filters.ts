@@ -22,6 +22,7 @@ export const all = Object.freeze<string[]>([
 	'scripts/**/*',
 	'src/**/*',
 	'test/**/*',
+	'!.github/**/*',
 	'!cli/**/*',
 	'!out*/**',
 	'!extensions/**/out*/**',

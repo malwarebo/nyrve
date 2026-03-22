@@ -1,4 +1,4 @@
-name: Monaco Editor checks
+name: Nyrve - Monaco Editor checks
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions: {}
 
 jobs:
   main:
-    name: Monaco Editor checks
+    name: Nyrve - Monaco Editor checks
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:

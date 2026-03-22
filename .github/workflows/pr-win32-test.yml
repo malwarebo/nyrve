@@ -17,13 +17,13 @@ on:
 jobs:
   windows-test:
     name: ${{ inputs.job_name }}
-    runs-on: [ self-hosted, 1ES.Pool=1es-vscode-oss-windows-2022-x64 ]
+    runs-on: windows-latest
     env:
       ARTIFACT_NAME: ${{ (inputs.electron_tests && 'electron') || (inputs.browser_tests && 'browser') || (inputs.remote_tests && 'remote') || 'unknown' }}
       NPM_ARCH: x64
       VSCODE_ARCH: x64
     steps:
-      - name: Checkout microsoft/vscode
+      - name: Checkout
         uses: actions/checkout@v6
 
       - name: Setup Node.js
@@ -55,7 +55,6 @@ jobs:
         run: |
           . build/azure-pipelines/win32/exec.ps1
           $ErrorActionPreference = "Stop"
-
           for ($i = 1; $i -le 5; $i++) {
             try {
               exec { npm ci }
@@ -134,19 +133,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🧪 Run unit tests (Electron)
+      - name: Run unit tests (Electron)
         if: ${{ inputs.electron_tests }}
         shell: pwsh
         run: .\scripts\test.bat --tfs "Unit Tests"
         timeout-minutes: 15
 
-      - name: 🧪 Run unit tests (node.js)
+      - name: Run unit tests (node.js)
         if: ${{ inputs.electron_tests }}
         shell: pwsh
         run: npm run test-node
         timeout-minutes: 15
 
-      - name: 🧪 Run unit tests (Browser, Chromium)
+      - name: Run unit tests (Browser, Chromium)
         if: ${{ inputs.browser_tests }}
         shell: pwsh
         run: node test/unit/browser/index.js --browser chromium --tfs "Browser Unit Tests"
@@ -179,41 +178,23 @@ jobs:
             compile-extension:vscode-test-resolver `
           }
 
-      - name: Diagnostics before integration test runs
-        shell: pwsh
-        run: .\build\azure-pipelines\win32\listprocesses.bat
-        continue-on-error: true
-        if: always()
-
-      - name: 🧪 Run integration tests (Electron)
+      - name: Run integration tests (Electron)
         if: ${{ inputs.electron_tests }}
         shell: pwsh
         run: .\scripts\test-integration.bat --tfs "Integration Tests"
         timeout-minutes: 20
 
-      - name: 🧪 Run integration tests (Browser, Chromium)
+      - name: Run integration tests (Browser, Chromium)
         if: ${{ inputs.browser_tests }}
         shell: pwsh
         run: .\scripts\test-web-integration.bat --browser chromium
         timeout-minutes: 20
 
-      - name: 🧪 Run integration tests (Remote)
+      - name: Run integration tests (Remote)
         if: ${{ inputs.remote_tests }}
         shell: pwsh
         run: .\scripts\test-remote-integration.bat
         timeout-minutes: 20
-
-      - name: Diagnostics after integration test runs
-        shell: pwsh
-        run: .\build\azure-pipelines\win32\listprocesses.bat
-        continue-on-error: true
-        if: always()
-
-      - name: Diagnostics before smoke test run
-        shell: pwsh
-        run: .\build\azure-pipelines\win32\listprocesses.bat
-        continue-on-error: true
-        if: always()
 
       - name: Compile smoke tests
         working-directory: test/smoke
@@ -224,29 +205,23 @@ jobs:
         shell: pwsh
         run: npm run gulp compile-extension-media
 
-      - name: 🧪 Run smoke tests (Electron)
+      - name: Run smoke tests (Electron)
         if: ${{ inputs.electron_tests }}
         timeout-minutes: 20
         shell: pwsh
         run: npm run smoketest-no-compile -- --tracing
 
-      - name: 🧪 Run smoke tests (Browser, Chromium)
+      - name: Run smoke tests (Browser, Chromium)
         if: ${{ inputs.browser_tests }}
         timeout-minutes: 20
         shell: pwsh
         run: npm run smoketest-no-compile -- --web --tracing --headless
 
-      - name: 🧪 Run smoke tests (Remote)
+      - name: Run smoke tests (Remote)
         if: ${{ inputs.remote_tests }}
         timeout-minutes: 20
         shell: pwsh
         run: npm run smoketest-no-compile -- --remote --tracing
-
-      - name: Diagnostics after smoke test run
-        shell: pwsh
-        run: .\build\azure-pipelines\win32\listprocesses.bat
-        continue-on-error: true
-        if: always()
 
       - name: Publish Crash Reports
         uses: actions/upload-artifact@v7
@@ -255,17 +230,6 @@ jobs:
         with:
           name: ${{ format('crash-dump-windows-{0}-{1}-{2}', env.VSCODE_ARCH, env.ARTIFACT_NAME, github.run_attempt) }}
           path: .build/crashes
-          if-no-files-found: ignore
-
-      # In order to properly symbolify above crash reports
-      # (if any), we need the compiled native modules too
-      - name: Publish Node Modules
-        uses: actions/upload-artifact@v7
-        if: failure()
-        continue-on-error: true
-        with:
-          name: ${{ format('node-modules-windows-{0}-{1}-{2}', env.VSCODE_ARCH, env.ARTIFACT_NAME, github.run_attempt) }}
-          path: node_modules
           if-no-files-found: ignore
 
       - name: Publish Log Files

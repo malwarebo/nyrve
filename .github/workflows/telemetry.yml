@@ -1,4 +1,4 @@
-name: 'Telemetry'
+name: 'Nyrve - Telemetry'
 on: pull_request
 permissions: {}
 jobs:

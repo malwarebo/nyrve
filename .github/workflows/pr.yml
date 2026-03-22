@@ -1,4 +1,4 @@
-name: Code OSS
+name: Nyrve
 
 on:
   pull_request:
@@ -18,9 +18,9 @@ env:
 jobs:
   compile:
     name: Compile & Hygiene
-    runs-on: [ self-hosted, 1ES.Pool=1es-vscode-oss-ubuntu-22.04-x64 ]
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout microsoft/vscode
+      - name: Checkout
         uses: actions/checkout@v6
 
       - name: Setup Node.js
@@ -50,8 +50,7 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: |
           set -e
-
-          for i in {1..5}; do # try 5 times
+          for i in {1..5}; do
             npm ci && break
             if [ $i -eq 5 ]; then
               echo "Npm install failed too many times" >&2

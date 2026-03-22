@@ -1,4 +1,4 @@
-name: Checking Component Screenshots
+name: Nyrve - Component Screenshots
 
 on:
   push:
@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   screenshots:
-    name: Checking Component Screenshots
+    name: Nyrve - Component Screenshots
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

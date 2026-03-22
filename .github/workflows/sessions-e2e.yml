@@ -1,4 +1,4 @@
-name: Sessions E2E Tests
+name: Nyrve - Sessions E2E Tests
 
 on:
   pull_request:
@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   sessions-e2e:
-    name: Sessions E2E Tests
+    name: Nyrve - Sessions E2E Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
