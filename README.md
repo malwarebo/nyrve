@@ -88,7 +88,7 @@ Nyrve is a fork of [VS Code](https://github.com/microsoft/vscode). All VS Code e
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - Python 3 (for native modules)
 - C++ toolchain (GCC/Clang on Linux, Xcode on macOS, MSVC on Windows)
 
@@ -119,7 +119,7 @@ npm run gulp vscode-linux-x64-min
 npm run gulp vscode-linux-arm64-min
 ```
 
-Output goes to `../VSCode-{platform}-{arch}/`.
+Output goes to `../Nyrve-{platform}-{arch}/`.
 
 ### Platform installers
 
@@ -145,7 +145,11 @@ Handled by `build/darwin/create-universal-app.ts` after building both x64 and ar
 
 ### CI
 
-The full multi-platform build pipeline is in `build/azure-pipelines/product-build.yml`. It builds all targets in parallel: Windows (x64, arm64), macOS (x64, arm64, universal), Linux (x64, arm64, armhf), Alpine (x64, arm64).
+CI runs on GitHub Actions. Key workflows in `.github/workflows/`:
+
+- **`nyrve-ci.yml`** — Runs on every PR: TypeScript compilation, Nyrve unit tests, hygiene checks
+- **`nyrve-release.yml`** — Triggered by `v*` tags or manual dispatch: builds Linux (x64), macOS (arm64, x64), Windows (x64) and creates a draft GitHub Release
+- **`pr.yml`** / **`pr-*-test.yml`** — Full platform test matrix (Linux, macOS, Windows)
 
 ### Validation
 

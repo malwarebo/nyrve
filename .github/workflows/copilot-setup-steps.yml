@@ -86,8 +86,6 @@ jobs:
         run: |
           set -e
 
-          source ./build/azure-pipelines/linux/setup-env.sh
-
           for i in {1..5}; do # try 5 times
             npm ci && break
             if [ $i -eq 5 ]; then
