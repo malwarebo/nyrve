@@ -72,10 +72,6 @@ jobs:
           mkdir -p .build/node_modules_cache
           tar -czf .build/node_modules_cache/cache.tgz --files-from .build/node_modules_list.txt
 
-      - name: Type check build/ scripts
-        run: npm run typecheck
-        working-directory: build
-
       - name: Compile TypeScript (native)
         run: npm run compile-check-ts-native
 

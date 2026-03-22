@@ -19,7 +19,8 @@
 			"ES2024",
 			"DOM",
 			"DOM.Iterable",
-			"WebWorker.ImportScripts"
+			"WebWorker.ImportScripts",
+			"esnext.disposable"
 		]
 	}
 }

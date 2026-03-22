@@ -178,6 +178,9 @@ export default defineConfig({
 			'~@vscode/codicons': join(__dirname, '../../node_modules/@vscode/codicons'),
 		}
 	},
+	optimizeDeps: {
+		exclude: ['@vscode/sqlite3'],
+	},
 	esbuild: {
 		tsconfigRaw: {
 			compilerOptions: {

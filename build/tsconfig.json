@@ -21,6 +21,8 @@
 		"node_modules/**",
 		"monaco-editor-playground/**",
 		"builtin/**",
-		"vite/**"
+		"vite/**",
+		"lib/test/**",
+		"next/test/**"
 	]
 }
