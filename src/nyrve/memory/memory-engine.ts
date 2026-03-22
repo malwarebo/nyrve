@@ -220,10 +220,12 @@ export class NyrveMemoryEngine extends Disposable implements INyrveMemoryEngine 
 			for (const entry of this._memories.values()) {
 				await this.sqliteStorage.run(
 					`INSERT OR REPLACE INTO memories (id, type, content, embedding, created_at, last_accessed_at, access_count, source, tags, confidence, user_verified)
-					 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-					[entry.id, entry.type, entry.content, JSON.stringify(entry.embedding),
-					 entry.createdAt, entry.lastAccessedAt, entry.accessCount, entry.source,
-					 JSON.stringify(entry.tags), entry.confidence, entry.userVerified ? 1 : 0],
+						VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+					[
+						entry.id, entry.type, entry.content, JSON.stringify(entry.embedding),
+						entry.createdAt, entry.lastAccessedAt, entry.accessCount, entry.source,
+						JSON.stringify(entry.tags), entry.confidence, entry.userVerified ? 1 : 0,
+					],
 				);
 			}
 			this.logService.info(`[Nyrve] Migrated ${this._memories.size} memories to SQLite`);
@@ -265,10 +267,12 @@ export class NyrveMemoryEngine extends Disposable implements INyrveMemoryEngine 
 			for (const entry of this._memories.values()) {
 				await this.sqliteStorage.run(
 					`INSERT OR REPLACE INTO memories (id, type, content, embedding, created_at, last_accessed_at, access_count, source, tags, confidence, user_verified)
-					 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-					[entry.id, entry.type, entry.content, JSON.stringify(entry.embedding),
-					 entry.createdAt, entry.lastAccessedAt, entry.accessCount, entry.source,
-					 JSON.stringify(entry.tags), entry.confidence, entry.userVerified ? 1 : 0],
+						VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+					[
+						entry.id, entry.type, entry.content, JSON.stringify(entry.embedding),
+						entry.createdAt, entry.lastAccessedAt, entry.accessCount, entry.source,
+						JSON.stringify(entry.tags), entry.confidence, entry.userVerified ? 1 : 0,
+					],
 				);
 			}
 			this.logService.trace(`[Nyrve] Saved ${this._memories.size} memories to SQLite`);

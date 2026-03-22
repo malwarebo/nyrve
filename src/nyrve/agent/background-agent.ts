@@ -110,8 +110,7 @@ export interface INyrveBackgroundAgent {
 
 export class NyrveBackgroundAgent
 	extends Disposable
-	implements INyrveBackgroundAgent
-{
+	implements INyrveBackgroundAgent {
 	declare readonly _serviceBrand: undefined;
 
 	private readonly _onDidChangeState = this._register(

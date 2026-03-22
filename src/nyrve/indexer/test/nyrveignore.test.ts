@@ -20,7 +20,7 @@ suite("Nyrve: IgnoreService", () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	function createIgnoreService(maxFileSize?: number): NyrveIgnoreService {
-		const fileService = new (class extends mock<IFileService>() {})();
+		const fileService = new (class extends mock<IFileService>() { })();
 		const workspaceService =
 			new (class extends mock<IWorkspaceContextService>() {
 				override getWorkspace(): IWorkspace {

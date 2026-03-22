@@ -18,7 +18,7 @@ suite("Nyrve: MentionRegistry", () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	function createRegistry(): NyrveMentionRegistry {
-		const fileService = new (class extends mock<IFileService>() {})();
+		const fileService = new (class extends mock<IFileService>() { })();
 		const workspaceService =
 			new (class extends mock<IWorkspaceContextService>() {
 				override getWorkspace(): IWorkspace {

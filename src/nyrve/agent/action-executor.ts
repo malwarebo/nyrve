@@ -79,8 +79,7 @@ export interface INyrveActionExecutor {
 
 export class NyrveActionExecutor
 	extends Disposable
-	implements INyrveActionExecutor
-{
+	implements INyrveActionExecutor {
 	declare readonly _serviceBrand: undefined;
 
 	constructor(

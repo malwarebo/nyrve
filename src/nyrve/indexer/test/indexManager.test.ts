@@ -33,7 +33,7 @@ suite("Nyrve: IndexManager", () => {
 			override exceedsMaxFileSize(size: number): boolean {
 				return size > 1048576;
 			}
-			override async reload(): Promise<void> {}
+			override async reload(): Promise<void> { }
 			override getPatterns(): string[] {
 				return [];
 			}
@@ -67,9 +67,9 @@ suite("Nyrve: IndexManager", () => {
 	function createIndexManager(): NyrveIndexManager {
 		const fileService = new (class extends mock<IFileService>() {
 			override watch() {
-				return { dispose() {} };
+				return { dispose() { } };
 			}
-			override onDidFilesChange = (() => ({ dispose() {} })) as any;
+			override onDidFilesChange = (() => ({ dispose() { } })) as any;
 		})();
 		const workspaceService =
 			new (class extends mock<IWorkspaceContextService>() {
@@ -156,9 +156,9 @@ suite("Nyrve: IndexManager", () => {
 	test("buildIndex skipped when disabled", async () => {
 		const fileService = new (class extends mock<IFileService>() {
 			override watch() {
-				return { dispose() {} };
+				return { dispose() { } };
 			}
-			override onDidFilesChange = (() => ({ dispose() {} })) as any;
+			override onDidFilesChange = (() => ({ dispose() { } })) as any;
 		})();
 		const workspaceService =
 			new (class extends mock<IWorkspaceContextService>() {

@@ -129,80 +129,87 @@ function toExternalDTS(contents: string) {
 	return lines.join('\n').replace(/\n\n\n+/g, '\n\n');
 }
 
-const finalEditorResourcesTask = task.define('final-editor-resources', () => {
-	return es.merge(
+const finalEditorResourcesTask = task.define('final-editor-resources', async () => {
+	await Promise.all([
 		// other assets
-		es.merge(
-			gulp.src('build/monaco/LICENSE'),
-			gulp.src('build/monaco/ThirdPartyNotices.txt'),
-			gulp.src('src/vs/monaco.d.ts')
-		).pipe(gulp.dest('out-monaco-editor-core')),
+		util.streamToPromise(
+			gulp.src(['build/monaco/LICENSE', 'build/monaco/ThirdPartyNotices.txt', 'src/vs/monaco.d.ts'])
+				.pipe(gulp.dest('out-monaco-editor-core'))
+		),
 
 		// place the .d.ts in the esm folder
-		gulp.src('src/vs/monaco.d.ts')
-			.pipe(es.through(function (data) {
-				this.emit('data', new File({
-					path: data.path.replace(/monaco\.d\.ts/, 'editor.api.d.ts'),
-					base: data.base,
-					contents: Buffer.from(toExternalDTS(data.contents.toString()))
-				}));
-			}))
-			.pipe(gulp.dest('out-monaco-editor-core/esm/vs/editor')),
+		util.streamToPromise(
+			gulp.src('src/vs/monaco.d.ts')
+				.pipe(es.through(function (data) {
+					this.emit('data', new File({
+						path: data.path.replace(/monaco\.d\.ts/, 'editor.api.d.ts'),
+						base: data.base,
+						contents: Buffer.from(toExternalDTS(data.contents.toString()))
+					}));
+				}))
+				.pipe(gulp.dest('out-monaco-editor-core/esm/vs/editor'))
+		),
 
 		// package.json
-		gulp.src('build/monaco/package.json')
-			.pipe(es.through(function (data) {
-				const json = JSON.parse(data.contents.toString());
-				json.private = false;
+		util.streamToPromise(
+			gulp.src('build/monaco/package.json')
+				.pipe(es.through(function (data) {
+					const json = JSON.parse(data.contents.toString());
+					json.private = false;
 
-				let markedVersion;
-				let dompurifyVersion;
-				try {
-					const markedManifestPath = path.join(root, 'src/vs/base/common/marked/cgmanifest.json');
-					const dompurifyManifestPath = path.join(root, 'src/vs/base/browser/dompurify/cgmanifest.json');
+					let markedVersion;
+					let dompurifyVersion;
+					try {
+						const markedManifestPath = path.join(root, 'src/vs/base/common/marked/cgmanifest.json');
+						const dompurifyManifestPath = path.join(root, 'src/vs/base/browser/dompurify/cgmanifest.json');
 
-					const markedManifest = JSON.parse(fs.readFileSync(markedManifestPath, 'utf8'));
-					const dompurifyManifest = JSON.parse(fs.readFileSync(dompurifyManifestPath, 'utf8'));
+						const markedManifest = JSON.parse(fs.readFileSync(markedManifestPath, 'utf8'));
+						const dompurifyManifest = JSON.parse(fs.readFileSync(dompurifyManifestPath, 'utf8'));
 
-					markedVersion = markedManifest.registrations[0].version;
-					dompurifyVersion = dompurifyManifest.registrations[0].version;
+						markedVersion = markedManifest.registrations[0].version;
+						dompurifyVersion = dompurifyManifest.registrations[0].version;
 
-					if (!markedVersion || !dompurifyVersion) {
-						throw new Error('Unable to read versions from cgmanifest.json files');
+						if (!markedVersion || !dompurifyVersion) {
+							throw new Error('Unable to read versions from cgmanifest.json files');
+						}
+					} catch (error) {
+						throw new Error(`Failed to read cgmanifest.json files for monaco-editor-core dependencies: ${error.message}`);
 					}
-				} catch (error) {
-					throw new Error(`Failed to read cgmanifest.json files for monaco-editor-core dependencies: ${error.message}`);
-				}
 
-				setUnsetField(json, 'dependencies', {
-					'marked': markedVersion,
-					'dompurify': dompurifyVersion
-				});
+					setUnsetField(json, 'dependencies', {
+						'marked': markedVersion,
+						'dompurify': dompurifyVersion
+					});
 
-				data.contents = Buffer.from(JSON.stringify(json, null, '  '));
-				this.emit('data', data);
-			}))
-			.pipe(gulp.dest('out-monaco-editor-core')),
+					data.contents = Buffer.from(JSON.stringify(json, null, '  '));
+					this.emit('data', data);
+				}))
+				.pipe(gulp.dest('out-monaco-editor-core'))
+		),
 
 		// version.txt
-		gulp.src('build/monaco/version.txt')
-			.pipe(es.through(function (data) {
-				data.contents = Buffer.from(`monaco-editor-core: https://github.com/microsoft/vscode/tree/${sha1}`);
-				this.emit('data', data);
-			}))
-			.pipe(gulp.dest('out-monaco-editor-core')),
+		util.streamToPromise(
+			gulp.src('build/monaco/version.txt')
+				.pipe(es.through(function (data) {
+					data.contents = Buffer.from(`monaco-editor-core: https://github.com/microsoft/vscode/tree/${sha1}`);
+					this.emit('data', data);
+				}))
+				.pipe(gulp.dest('out-monaco-editor-core'))
+		),
 
 		// README.md
-		gulp.src('build/monaco/README-npm.md')
-			.pipe(es.through(function (data) {
-				this.emit('data', new File({
-					path: data.path.replace(/README-npm\.md/, 'README.md'),
-					base: data.base,
-					contents: data.contents
-				}));
-			}))
-			.pipe(gulp.dest('out-monaco-editor-core')),
-	);
+		util.streamToPromise(
+			gulp.src('build/monaco/README-npm.md')
+				.pipe(es.through(function (data) {
+					this.emit('data', new File({
+						path: data.path.replace(/README-npm\.md/, 'README.md'),
+						base: data.base,
+						contents: data.contents
+					}));
+				}))
+				.pipe(gulp.dest('out-monaco-editor-core'))
+		),
+	]);
 });
 
 gulp.task('extract-editor-src',

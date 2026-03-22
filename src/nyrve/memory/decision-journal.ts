@@ -364,13 +364,15 @@ export class NyrveDecisionJournal extends Disposable implements INyrveDecisionJo
 	private async _insertToSqlite(entry: DecisionEntry): Promise<void> {
 		await this.sqliteStorage.run(
 			`INSERT OR REPLACE INTO decisions (id, title, description, rationale, alternatives, date, source, conversation_id, commit_hash, files_affected, modules_affected, tags, status, superseded_by, embedding)
-			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-			[entry.id, entry.title, entry.description, entry.rationale,
-			 JSON.stringify(entry.alternativesConsidered), entry.date, entry.source,
-			 entry.conversationId ?? null, entry.commitHash ?? null,
-			 JSON.stringify(entry.filesAffected), JSON.stringify(entry.modulesAffected),
-			 JSON.stringify(entry.tags), entry.status, entry.supersededBy ?? null,
-			 JSON.stringify(entry.embedding)],
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			[
+				entry.id, entry.title, entry.description, entry.rationale,
+				JSON.stringify(entry.alternativesConsidered), entry.date, entry.source,
+				entry.conversationId ?? null, entry.commitHash ?? null,
+				JSON.stringify(entry.filesAffected), JSON.stringify(entry.modulesAffected),
+				JSON.stringify(entry.tags), entry.status, entry.supersededBy ?? null,
+				JSON.stringify(entry.embedding),
+			],
 		);
 	}
 

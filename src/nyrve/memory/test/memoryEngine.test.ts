@@ -25,7 +25,7 @@ suite("Nyrve: MemoryEngine", () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	function createEngine(config?: Record<string, unknown>): NyrveMemoryEngine {
-		const fileService = new (class extends mock<IFileService>() {})();
+		const fileService = new (class extends mock<IFileService>() { })();
 		const workspaceService =
 			new (class extends mock<IWorkspaceContextService>() {
 				override getWorkspace(): IWorkspace {

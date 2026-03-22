@@ -18,7 +18,7 @@ suite('Nyrve: MemoryEngine BM25 Search', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	function createEngine(): NyrveMemoryEngine {
-		const fileService = new (class extends mock<IFileService>() {})();
+		const fileService = new (class extends mock<IFileService>() { })();
 		const workspaceService = new (class extends mock<IWorkspaceContextService>() {
 			override getWorkspace(): IWorkspace {
 				return { id: 'test', folders: [], transient: false } as IWorkspace;
@@ -101,7 +101,7 @@ suite('Nyrve: MemoryEngine BM25 Search', () => {
 
 	test('evicts lowest confidence when at max capacity', () => {
 		const smallEngine = (() => {
-			const fileService = new (class extends mock<IFileService>() {})();
+			const fileService = new (class extends mock<IFileService>() { })();
 			const workspaceService = new (class extends mock<IWorkspaceContextService>() {
 				override getWorkspace(): IWorkspace {
 					return { id: 'test', folders: [], transient: false } as IWorkspace;

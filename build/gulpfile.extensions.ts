@@ -176,7 +176,7 @@ const tasks = compilations.map(function (tsconfigFile) {
 
 	const transpileTask = task.define(`transpile-extension:${name}`, task.series(cleanTask, () => {
 		const pipeline = createPipeline(false, true, true);
-		const nonts = gulp.src(src, srcOpts).pipe(filter(['**', '!**/*.ts']));
+		const nonts = gulp.src([src, '!**/fixtures/**'], srcOpts).pipe(filter(['**', '!**/*.ts']));
 		const input = es.merge(nonts, pipeline.tsProjectSrc());
 
 		return input
