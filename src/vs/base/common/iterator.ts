@@ -5,6 +5,17 @@
 
 import { isIterable } from './types.js';
 
+/**
+ * Adds `[Symbol.dispose]` to a generator-based iterator so it satisfies the
+ * TS 6 `MapIterator` / `SetIterator` contracts which extend `Disposable`.
+ */
+export function disposableIterator<T>(gen: Generator<T, void, undefined>): MapIterator<T> {
+	// Generators already implement `.return()` for cleanup.
+	// We just need to expose it via [Symbol.dispose] for the built-in iterator types.
+	(gen as any)[Symbol.dispose] = () => gen.return(undefined!);
+	return gen as any;
+}
+
 export namespace Iterable {
 
 	export function is<T = unknown>(thing: unknown): thing is Iterable<T> {

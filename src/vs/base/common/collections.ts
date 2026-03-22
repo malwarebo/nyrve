@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { disposableIterator } from './iterator.js';
+
 /**
  * An interface for a JavaScript object that
  * acts a dictionary. The keys are strings.
@@ -122,17 +124,23 @@ export class SetWithKey<T> implements Set<T> {
 		return this._map.has(this.toKey(value));
 	}
 
-	*entries(): IterableIterator<[T, T]> {
+	entries(): SetIterator<[T, T]> {
+		return disposableIterator(this._generateEntries()) as unknown as SetIterator<[T, T]>;
+	}
+	private *_generateEntries(): Generator<[T, T], void, undefined> {
 		for (const entry of this._map.values()) {
 			yield [entry, entry];
 		}
 	}
 
-	keys(): IterableIterator<T> {
+	keys(): SetIterator<T> {
 		return this.values();
 	}
 
-	*values(): IterableIterator<T> {
+	values(): SetIterator<T> {
+		return disposableIterator(this._generateValues()) as unknown as SetIterator<T>;
+	}
+	private *_generateValues(): Generator<T, void, undefined> {
 		for (const entry of this._map.values()) {
 			yield entry;
 		}
@@ -146,7 +154,7 @@ export class SetWithKey<T> implements Set<T> {
 		this._map.forEach(entry => callbackfn.call(thisArg, entry, entry, this));
 	}
 
-	[Symbol.iterator](): IterableIterator<T> {
+	[Symbol.iterator](): SetIterator<T> {
 		return this.values();
 	}
 

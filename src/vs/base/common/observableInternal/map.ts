@@ -12,7 +12,7 @@ export class ObservableMap<K, V> implements Map<K, V> {
 
 	private readonly _obs = observableValueOpts({ equalsFn: () => false }, this);
 
-	readonly observable: IObservable<Map<K, V>> = this._obs;
+	readonly observable: IObservable<Map<K, V>> = this._obs as IObservable<Map<K, V>>;
 
 	get size(): number {
 		return this._data.size;
@@ -53,24 +53,24 @@ export class ObservableMap<K, V> implements Map<K, V> {
 
 	forEach(callbackfn: (value: V, key: K, map: Map<K, V>) => void, thisArg?: unknown): void {
 		this._data.forEach((value, key, _map) => {
-			callbackfn.call(thisArg, value, key, this);
+			callbackfn.call(thisArg, value, key, this as Map<K, V>);
 		});
 	}
 
-	*entries(): IterableIterator<[K, V]> {
-		yield* this._data.entries();
+	entries(): MapIterator<[K, V]> {
+		return this._data.entries();
 	}
 
-	*keys(): IterableIterator<K> {
-		yield* this._data.keys();
+	keys(): MapIterator<K> {
+		return this._data.keys();
 	}
 
-	*values(): IterableIterator<V> {
-		yield* this._data.values();
+	values(): MapIterator<V> {
+		return this._data.values();
 	}
 
-	[Symbol.iterator](): IterableIterator<[K, V]> {
-		return this.entries();
+	[Symbol.iterator](): MapIterator<[K, V]> {
+		return this._data.entries();
 	}
 
 	get [Symbol.toStringTag](): string {

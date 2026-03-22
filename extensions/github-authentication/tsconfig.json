@@ -6,7 +6,9 @@
 		"typeRoots": [
 			"./node_modules/@types"
 		],
+		"types": ["node", "mocha"],
 		"lib": [
+			"ES2024",
 			"WebWorker"
 		]
 	},

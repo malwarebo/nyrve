@@ -78,7 +78,7 @@ function prepareDebPackage(arch: string) {
 			.pipe(replace('@@APPNAME@@', product.applicationName))
 			.pipe(rename('usr/share/zsh/vendor-completions/_' + product.applicationName));
 
-		const code = gulp.src(binaryDir + '/**/*', { base: binaryDir })
+		const code = gulp.src(binaryDir + '/**/*', { base: binaryDir, encoding: false })
 			.pipe(rename(function (p) { p.dirname = 'usr/share/' + product.applicationName + '/' + p.dirname; }));
 
 		let size = 0;
@@ -188,7 +188,7 @@ function prepareRpmPackage(arch: string) {
 			.pipe(replace('@@APPNAME@@', product.applicationName))
 			.pipe(rename('BUILD/usr/share/zsh/site-functions/_' + product.applicationName));
 
-		const code = gulp.src(binaryDir + '/**/*', { base: binaryDir })
+		const code = gulp.src(binaryDir + '/**/*', { base: binaryDir, encoding: false })
 			.pipe(rename(function (p) { p.dirname = 'BUILD/usr/share/' + product.applicationName + '/' + p.dirname; }));
 
 		const spec = gulp.src('resources/linux/rpm/code.spec.template', { base: '.' })
@@ -256,7 +256,7 @@ function prepareSnapPackage(arch: string) {
 		const icon = gulp.src('resources/linux/nyrve.png', { base: '.' })
 			.pipe(rename(`snap/gui/${product.linuxIconName}.png`));
 
-		const code = gulp.src(binaryDir + '/**/*', { base: binaryDir })
+		const code = gulp.src(binaryDir + '/**/*', { base: binaryDir, encoding: false })
 			.pipe(rename(function (p) { p.dirname = `usr/share/${product.applicationName}/${p.dirname}`; }));
 
 		const snapcraft = gulp.src('resources/linux/snap/snapcraft.yaml', { base: '.' })

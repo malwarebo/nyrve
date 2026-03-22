@@ -35,12 +35,11 @@ import type { EmbeddedProductInfo } from './lib/embeddedType.ts';
 import { useEsbuildTranspile } from './buildConfig.ts';
 import { promisify } from 'util';
 import globCallback from 'glob';
-import rceditCallback from 'rcedit';
+import { rcedit } from 'rcedit';
 import * as cp from 'child_process';
 
 
 const glob = promisify(globCallback);
-const rcedit = promisify(rceditCallback);
 const root = path.dirname(import.meta.dirname);
 const commit = getVersion(root);
 
@@ -339,7 +338,7 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 			'vs/sessions/electron-browser/sessions.js'
 		]);
 
-		const src = gulp.src(out + '/**', { base: '.' })
+		const src = gulp.src(out + '/**', { base: '.', encoding: false })
 			.pipe(rename(function (path) { path.dirname = path.dirname!.replace(new RegExp('^' + out), 'out'); }))
 			.pipe(util.setExecutableBit(['**/*.sh']));
 
@@ -352,7 +351,7 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 			return !set.has(platform);
 		}).map(ext => `!.build/extensions/${ext.name}/**`);
 
-		const extensions = gulp.src(['.build/extensions/**', ...platformSpecificBuiltInExtensionsExclusions], { base: '.build', dot: true });
+		const extensions = gulp.src(['.build/extensions/**', ...platformSpecificBuiltInExtensionsExclusions], { base: '.build', dot: true, encoding: false });
 
 		const sourceFilterPattern = stripSourceMapsInPackagingTasks
 			? ['**', '!**/*.{js,css}.map']

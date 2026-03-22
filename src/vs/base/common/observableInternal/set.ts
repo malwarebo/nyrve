@@ -12,7 +12,7 @@ export class ObservableSet<T> implements Set<T> {
 
 	private _obs = observableValueOpts({ equalsFn: () => false }, this);
 
-	readonly observable: IObservable<Set<T>> = this._obs;
+	readonly observable: IObservable<Set<T>> = this._obs as IObservable<Set<T>>;
 
 	get size(): number {
 		return this._data.size;
@@ -53,22 +53,20 @@ export class ObservableSet<T> implements Set<T> {
 		});
 	}
 
-	*entries(): IterableIterator<[T, T]> {
-		for (const value of this._data) {
-			yield [value, value];
-		}
+	entries(): SetIterator<[T, T]> {
+		return this._data.entries();
 	}
 
-	*keys(): IterableIterator<T> {
-		yield* this._data.keys();
+	keys(): SetIterator<T> {
+		return this._data.keys();
 	}
 
-	*values(): IterableIterator<T> {
-		yield* this._data.values();
+	values(): SetIterator<T> {
+		return this._data.values();
 	}
 
-	[Symbol.iterator](): IterableIterator<T> {
-		return this.values();
+	[Symbol.iterator](): SetIterator<T> {
+		return this._data.values();
 	}
 
 	get [Symbol.toStringTag](): string {

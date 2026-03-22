@@ -10,6 +10,7 @@
 			"node"
 		],
 		"lib": [
+			"ES2024",
 			"WebWorker"
 		]
 	},

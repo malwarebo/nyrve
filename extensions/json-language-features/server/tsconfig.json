@@ -10,8 +10,10 @@
 			"WebWorker"
 		],
 		"module": "Node16",
+		"types": ["node", "mocha"],
 		"typeRoots": [
-			"../node_modules/@types"
+			"../node_modules/@types",
+			"./node_modules/@types"
 		]
 	},
 	"include": [

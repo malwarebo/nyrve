@@ -124,7 +124,7 @@ const tasks = compilations.map(function (tsconfigFile) {
 	const srcRoot = path.dirname(tsconfigFile);
 	const srcBase = path.join(srcRoot, 'src');
 	const src = path.join(srcBase, '**');
-	const srcOpts = { cwd: root, base: srcBase, dot: true };
+	const srcOpts = { cwd: root, base: srcBase, dot: true, follow: false, encoding: false as const };
 
 	const out = path.join(srcRoot, 'out');
 	const baseUrl = getBaseUrl(out);
@@ -185,7 +185,7 @@ const tasks = compilations.map(function (tsconfigFile) {
 	}));
 
 	const compileTask = task.define(`compile-extension:${name}`, task.series(cleanTask, async () => {
-		const nonts = gulp.src(src, srcOpts).pipe(filter(['**', '!**/*.ts'], { dot: true }));
+		const nonts = gulp.src([src, '!**/fixtures/**'], srcOpts).pipe(filter(['**', '!**/*.ts'], { dot: true }));
 		const copyNonTs = util.streamToPromise(nonts.pipe(gulp.dest(out)));
 		const tsgo = spawnTsgo(absolutePath, { taskName: 'extensions' }, () => rewriteTsgoSourceMappingUrlsIfNeeded(false, out, baseUrl));
 

@@ -10,6 +10,7 @@ import { InstantiationType, registerSingleton } from '../../vs/platform/instanti
 import { ILogService } from '../../vs/platform/log/common/log.js';
 import { ISecretStorageService } from '../../vs/platform/secrets/common/secrets.js';
 import { INyrveApiClient } from './api-client.js';
+import { INyrveOAuthService } from '../oauth/oauth-service.js';
 
 // --- Constants ---
 
@@ -62,6 +63,11 @@ export interface INyrveAuthService {
 
 	// Health check
 	checkConnection(): Promise<boolean>;
+
+	// OAuth sign-in
+	signInWithOAuth(): Promise<void>;
+	cancelOAuthSignIn(): void;
+	readonly isOAuthSigningIn: boolean;
 }
 
 // --- Service Implementation ---
@@ -106,6 +112,7 @@ export class NyrveAuthService extends Disposable implements INyrveAuthService {
 		@ISecretStorageService private readonly secretStorageService: ISecretStorageService,
 		@INyrveApiClient private readonly apiClient: INyrveApiClient,
 		@ILogService private readonly logService: ILogService,
+		@INyrveOAuthService private readonly oauthService: INyrveOAuthService,
 	) {
 		super();
 
@@ -246,6 +253,31 @@ export class NyrveAuthService extends Disposable implements INyrveAuthService {
 
 		this._setStatus('disconnected');
 		return false;
+	}
+
+	// --- OAuth Sign-In ---
+
+	get isOAuthSigningIn(): boolean {
+		return this.oauthService.isSigningIn;
+	}
+
+	async signInWithOAuth(): Promise<void> {
+		this._setStatus('connecting');
+		try {
+			const result = await this.oauthService.signIn();
+			await this.storeApiKey(result.apiKey);
+			this.logService.info('[Nyrve] OAuth sign-in completed successfully');
+		} catch (e) {
+			this._setStatus('no-key');
+			throw e;
+		}
+	}
+
+	cancelOAuthSignIn(): void {
+		this.oauthService.cancel();
+		if (this._connectionStatus === 'connecting') {
+			this._setStatus('no-key');
+		}
 	}
 
 	// --- Private ---

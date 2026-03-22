@@ -110,7 +110,7 @@ export function transpileTask(src: string, out: string, esbuild?: boolean): task
 	const task = () => {
 
 		const transpile = createCompile(src, { build: false, emitError: true, transpileOnly: { esbuild: !!esbuild }, preserveEnglish: false });
-		const srcPipe = gulp.src(`${src}/**`, { base: `${src}` });
+		const srcPipe = gulp.src(`${src}/**`, { base: `${src}`, encoding: false });
 
 		return srcPipe
 			.pipe(transpile())
@@ -130,7 +130,7 @@ export function compileTask(src: string, out: string, build: boolean, options: {
 		}
 
 		const compile = createCompile(src, { build, emitError: true, transpileOnly: false, preserveEnglish: !!options.preserveEnglish });
-		const srcPipe = gulp.src(`${src}/**`, { base: `${src}` });
+		const srcPipe = gulp.src(`${src}/**`, { base: `${src}`, encoding: false });
 		const generator = new MonacoGenerator(false);
 		if (src === 'src') {
 			generator.execute();
@@ -175,7 +175,7 @@ export function watchTask(out: string, build: boolean, srcPath: string = 'src', 
 	const task = () => {
 		const compile = createCompile(srcPath, { build, emitError: false, transpileOnly: false, preserveEnglish: false, noEmit: options?.noEmit });
 
-		const src = gulp.src(`${srcPath}/**`, { base: srcPath });
+		const src = gulp.src(`${srcPath}/**`, { base: srcPath, encoding: false });
 		const watchSrc = watch(`${srcPath}/**`, { base: srcPath, readDelay: 200 });
 
 		const generator = new MonacoGenerator(true);

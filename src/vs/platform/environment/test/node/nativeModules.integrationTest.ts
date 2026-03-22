@@ -102,12 +102,12 @@ flakySuite('Native Modules (all platforms)', () => {
 	});
 
 	test('http-proxy-agent', async () => {
-		const { default: mod } = await import('http-proxy-agent');
+		const mod = await import('http-proxy-agent');
 		assert.ok(typeof mod.HttpProxyAgent === 'function', testErrorMessage('http-proxy-agent'));
 	});
 
 	test('https-proxy-agent', async () => {
-		const { default: mod } = await import('https-proxy-agent');
+		const mod = await import('https-proxy-agent');
 		assert.ok(typeof mod.HttpsProxyAgent === 'function', testErrorMessage('https-proxy-agent'));
 	});
 

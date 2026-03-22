@@ -45,10 +45,10 @@ export async function getProxyAgent(rawRequestURL: string, env: typeof process.e
 	};
 
 	if (requestURL.protocol === 'http:') {
-		const { default: mod } = await import('http-proxy-agent');
+		const mod = await import('http-proxy-agent');
 		return new mod.HttpProxyAgent(proxyURL, opts);
 	} else {
-		const { default: mod } = await import('https-proxy-agent');
+		const mod = await import('https-proxy-agent');
 		return new mod.HttpsProxyAgent(proxyURL, opts);
 	}
 }

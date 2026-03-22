@@ -24,9 +24,9 @@ import gunzip from 'gulp-gunzip';
 import { untar } from './lib/util.ts';
 import File from 'vinyl';
 import * as fs from 'fs';
-import glob from 'glob';
 import { promisify } from 'util';
-import rceditCallback from 'rcedit';
+import glob from 'glob';
+import { rcedit } from 'rcedit';
 import { compileBuildWithManglingTask } from './gulpfile.compile.ts';
 import { cleanExtensionsBuildTask, compileNonNativeExtensionsBuildTask, compileNativeExtensionsBuildTask, compileExtensionMediaBuildTask } from './gulpfile.extensions.ts';
 import { vscodeWebResourceIncludes, createVSCodeWebFileContentMapper } from './gulpfile.vscode.web.ts';
@@ -37,7 +37,6 @@ import { fetchUrls, fetchGithub } from './lib/fetch.ts';
 import jsonEditor from 'gulp-json-editor';
 
 
-const rcedit = promisify(rceditCallback);
 
 const REPO_ROOT = path.dirname(import.meta.dirname);
 const commit = getVersion(REPO_ROOT);
@@ -260,7 +259,7 @@ function packageTask(type: string, platform: string, arch: string, sourceFolderN
 	const destination = path.join(BUILD_ROOT, destinationFolderName);
 
 	return () => {
-		const src = gulp.src(sourceFolderName + '/**', { base: '.' })
+		const src = gulp.src(sourceFolderName + '/**', { base: '.', encoding: false })
 			.pipe(rename(function (path) { path.dirname = path.dirname!.replace(new RegExp('^' + sourceFolderName), 'out'); }))
 			.pipe(util.setExecutableBit(['**/*.sh']))
 			.pipe(filter(['**', '!**/*.{js,css}.map']));
@@ -302,8 +301,8 @@ function packageTask(type: string, platform: string, arch: string, sourceFolderN
 		const extensionPaths = [...localWorkspaceExtensions, ...marketplaceExtensions]
 			.map(name => `.build/extensions/${name}/**`);
 
-		const extensions = gulp.src(extensionPaths, { base: '.build', dot: true });
-		const extensionsCommonDependencies = gulp.src('.build/extensions/node_modules/**', { base: '.build', dot: true });
+		const extensions = gulp.src(extensionPaths, { base: '.build', dot: true, encoding: false });
+		const extensionsCommonDependencies = gulp.src('.build/extensions/node_modules/**', { base: '.build', dot: true, encoding: false });
 		const sources = es.merge(src, extensions, extensionsCommonDependencies)
 			.pipe(filter(['**', '!**/*.{js,css}.map'], { dot: true }));
 
@@ -348,7 +347,7 @@ function packageTask(type: string, platform: string, arch: string, sourceFolderN
 			.pipe(jsFilter.restore);
 
 		const nodePath = `.build/node/v${nodeVersion}/${platform}-${arch}`;
-		const node = gulp.src(`${nodePath}/**`, { base: nodePath, dot: true });
+		const node = gulp.src(`${nodePath}/**`, { base: nodePath, dot: true, encoding: false });
 
 		let web: NodeJS.ReadWriteStream[] = [];
 		if (type === 'reh-web') {

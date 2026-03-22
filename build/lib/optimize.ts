@@ -236,7 +236,7 @@ export function minifyTask(src: string, sourceMapBaseUrl?: string): (cb: any) =>
 		const svgFilter = filter('**/*.svg', { restore: true });
 
 		pump(
-			gulp.src([src + '/**', '!' + src + '/**/*.map']),
+			gulp.src([src + '/**', '!' + src + '/**/*.map'], { encoding: false }),
 			esbuildFilter,
 			sourcemaps.init({ loadMaps: true }),
 			es.map((f: any, cb) => {

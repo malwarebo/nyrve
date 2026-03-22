@@ -8,7 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import gulp from 'gulp';
 import vfs from 'vinyl-fs';
-import rimraf from 'rimraf';
+import { rimrafSync } from 'rimraf';
 import minimist from 'minimist';
 
 interface Options {
@@ -87,7 +87,7 @@ function update(options: Options) {
 
 		if (fs.existsSync(translationDataFolder) && fs.existsSync(path.join(translationDataFolder, 'main.i18n.json'))) {
 			console.log('Clearing  \'' + translationDataFolder + '\'...');
-			rimraf.sync(translationDataFolder);
+			rimrafSync(translationDataFolder);
 		}
 
 		console.log(`Importing translations for ${languageId} form '${location}' to '${translationDataFolder}' ...`);

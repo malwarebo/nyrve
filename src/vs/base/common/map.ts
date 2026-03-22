@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { disposableIterator } from './iterator.js';
 import { URI } from './uri.js';
 
 export function getOrSet<K, V>(map: Map<K, V>, key: K, value: V): V {
@@ -125,28 +126,35 @@ export class ResourceMap<T> implements Map<URI, T> {
 		}
 	}
 
-	*values(): IterableIterator<T> {
+	values(): MapIterator<T> {
+		return disposableIterator(this._generateValues());
+	}
+	private *_generateValues(): Generator<T, void, undefined> {
 		for (const entry of this.map.values()) {
 			yield entry.value;
 		}
 	}
 
-	*keys(): IterableIterator<URI> {
+	keys(): MapIterator<URI> {
+		return disposableIterator(this._generateKeys());
+	}
+	private *_generateKeys(): Generator<URI, void, undefined> {
 		for (const entry of this.map.values()) {
 			yield entry.uri;
 		}
 	}
 
-	*entries(): IterableIterator<[URI, T]> {
+	entries(): MapIterator<[URI, T]> {
+		return disposableIterator(this._generateEntries());
+	}
+	private *_generateEntries(): Generator<[URI, T], void, undefined> {
 		for (const entry of this.map.values()) {
 			yield [entry.uri, entry.value];
 		}
 	}
 
-	*[Symbol.iterator](): IterableIterator<[URI, T]> {
-		for (const [, entry] of this.map) {
-			yield [entry.uri, entry.value];
-		}
+	[Symbol.iterator](): MapIterator<[URI, T]> {
+		return this.entries();
 	}
 }
 
@@ -193,19 +201,19 @@ export class ResourceSet implements Set<URI> {
 		return this._map.has(value);
 	}
 
-	entries(): IterableIterator<[URI, URI]> {
-		return this._map.entries();
+	entries(): SetIterator<[URI, URI]> {
+		return this._map.entries() as unknown as SetIterator<[URI, URI]>;
 	}
 
-	keys(): IterableIterator<URI> {
-		return this._map.keys();
+	keys(): SetIterator<URI> {
+		return this._map.keys() as unknown as SetIterator<URI>;
 	}
 
-	values(): IterableIterator<URI> {
-		return this._map.keys();
+	values(): SetIterator<URI> {
+		return this._map.keys() as unknown as SetIterator<URI>;
 	}
 
-	[Symbol.iterator](): IterableIterator<URI> {
+	[Symbol.iterator](): SetIterator<URI> {
 		return this.keys();
 	}
 }
@@ -356,14 +364,15 @@ export class LinkedMap<K, V> implements Map<K, V> {
 		}
 	}
 
-	keys(): IterableIterator<K> {
+	keys(): MapIterator<K> {
 		const map = this;
 		const state = this._state;
 		let current = this._head;
-		const iterator: IterableIterator<K> = {
+		const iterator = {
 			[Symbol.iterator]() {
 				return iterator;
 			},
+			[Symbol.dispose]() { /* noop */ },
 			next(): IteratorResult<K> {
 				if (map._state !== state) {
 					throw new Error(`LinkedMap got modified during iteration.`);
@@ -377,17 +386,18 @@ export class LinkedMap<K, V> implements Map<K, V> {
 				}
 			}
 		};
-		return iterator;
+		return iterator as MapIterator<K>;
 	}
 
-	values(): IterableIterator<V> {
+	values(): MapIterator<V> {
 		const map = this;
 		const state = this._state;
 		let current = this._head;
-		const iterator: IterableIterator<V> = {
+		const iterator = {
 			[Symbol.iterator]() {
 				return iterator;
 			},
+			[Symbol.dispose]() { /* noop */ },
 			next(): IteratorResult<V> {
 				if (map._state !== state) {
 					throw new Error(`LinkedMap got modified during iteration.`);
@@ -401,17 +411,18 @@ export class LinkedMap<K, V> implements Map<K, V> {
 				}
 			}
 		};
-		return iterator;
+		return iterator as MapIterator<V>;
 	}
 
-	entries(): IterableIterator<[K, V]> {
+	entries(): MapIterator<[K, V]> {
 		const map = this;
 		const state = this._state;
 		let current = this._head;
-		const iterator: IterableIterator<[K, V]> = {
+		const iterator = {
 			[Symbol.iterator]() {
 				return iterator;
 			},
+			[Symbol.dispose]() { /* noop */ },
 			next(): IteratorResult<[K, V]> {
 				if (map._state !== state) {
 					throw new Error(`LinkedMap got modified during iteration.`);
@@ -425,10 +436,10 @@ export class LinkedMap<K, V> implements Map<K, V> {
 				}
 			}
 		};
-		return iterator;
+		return iterator as MapIterator<[K, V]>;
 	}
 
-	[Symbol.iterator](): IterableIterator<[K, V]> {
+	[Symbol.iterator](): MapIterator<[K, V]> {
 		return this.entries();
 	}
 

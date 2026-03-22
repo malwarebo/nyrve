@@ -20,5 +20,8 @@
 		"../../src/vscode-dts/vscode.d.ts",
 		"../../src/vscode-dts/vscode.proposed.terminalCompletionProvider.d.ts",
 		"../../src/vscode-dts/vscode.proposed.terminalShellEnv.d.ts"
+	],
+	"exclude": [
+		"src/test/fixtures/**"
 	]
 }

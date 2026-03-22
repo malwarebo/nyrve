@@ -175,10 +175,10 @@ function packageTask(sourceFolderName: string, destinationFolderName: string) {
 	const destination = path.join(BUILD_ROOT, destinationFolderName);
 
 	return () => {
-		const src = gulp.src(sourceFolderName + '/**', { base: '.' })
+		const src = gulp.src(sourceFolderName + '/**', { base: '.', encoding: false })
 			.pipe(rename(function (path) { path.dirname = path.dirname!.replace(new RegExp('^' + sourceFolderName), 'out'); }));
 
-		const extensions = gulp.src('.build/web/extensions/**', { base: '.build/web', dot: true });
+		const extensions = gulp.src('.build/web/extensions/**', { base: '.build/web', dot: true, encoding: false });
 
 		const sources = es.merge(src, extensions)
 			.pipe(filter(['**', '!**/*.{js,css}.map'], { dot: true }));

@@ -9,7 +9,7 @@ import _filter from 'gulp-filter';
 import rename from 'gulp-rename';
 import path from 'path';
 import fs from 'fs';
-import _rimraf from 'rimraf';
+import { rimraf as _rimraf } from 'rimraf';
 import VinylFile from 'vinyl';
 import through from 'through';
 import sm from 'source-map';
@@ -294,25 +294,7 @@ export function rewriteSourceMappingURL(sourceMappingURLBase: string): NodeJS.Re
 }
 
 export function rimraf(dir: string): () => Promise<void> {
-	const result = () => new Promise<void>((c, e) => {
-		let retries = 0;
-
-		const retry = () => {
-			_rimraf(dir, { maxBusyTries: 1 }, (err: any) => {
-				if (!err) {
-					return c();
-				}
-
-				if (err.code === 'ENOTEMPTY' && ++retries < 5) {
-					return setTimeout(() => retry(), 10);
-				}
-
-				return e(err);
-			});
-		};
-
-		retry();
-	});
+	const result = () => _rimraf(dir, { maxBusyTries: 5 }).then(() => { });
 
 	result.taskName = `clean-${path.basename(dir).toLowerCase()}`;
 	return result;
