@@ -192,7 +192,8 @@ export default defineConfig({
 			input: {
 				//index: path.resolve(__dirname, 'index.html'),
 				workbench: path.resolve(__dirname, 'workbench-vite.html'),
-			}
+			},
+			external: [/\.node$/],
 		}
 	},
 	server: {

@@ -3,7 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module 'rcedit' {
-	export function rcedit(exePath: string, options: Record<string, unknown>, cb?: (err?: Error) => void): Promise<void>;
-	export default rcedit;
+// Gulp 5 added an `encoding` option to gulp.src() but @types/vinyl-fs
+// has not been updated yet. This augmentation adds it to suppress TS2353.
+
+import 'vinyl-fs';
+
+declare module 'vinyl-fs' {
+	interface SrcOptions {
+		encoding?: BufferEncoding | false;
+	}
 }
