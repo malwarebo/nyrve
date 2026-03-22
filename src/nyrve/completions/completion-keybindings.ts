@@ -3,18 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { localize, localize2 } from '../../vs/nls.js';
+import { localize2 } from '../../vs/nls.js';
 import { Action2, registerAction2 } from '../../vs/platform/actions/common/actions.js';
 import { KeybindingWeight } from '../../vs/platform/keybinding/common/keybindingsRegistry.js';
 import { KeyCode, KeyMod } from '../../vs/base/common/keyCodes.js';
-import { ContextKeyExpr, RawContextKey } from '../../vs/platform/contextkey/common/contextkey.js';
+import { ContextKeyExpr } from '../../vs/platform/contextkey/common/contextkey.js';
 import type { ServicesAccessor } from '../../vs/platform/instantiation/common/instantiation.js';
 import { INyrveGhostTextRenderer } from './ghost-text-renderer.js';
 import { INyrveCompletionEngine } from './completion-engine.js';
-
-// --- Context Keys ---
-
-export const NyrveCompletionVisibleContext = new RawContextKey<boolean>('nyrveCompletionVisible', false, localize('nyrveCompletionVisible', "Whether a Nyrve inline completion is currently visible"));
 
 // --- Category ---
 

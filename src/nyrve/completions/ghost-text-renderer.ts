@@ -10,6 +10,7 @@ import { createDecorator } from '../../vs/platform/instantiation/common/instanti
 import { InstantiationType, registerSingleton } from '../../vs/platform/instantiation/common/extensions.js';
 import { IConfigurationService } from '../../vs/platform/configuration/common/configuration.js';
 import { ILogService } from '../../vs/platform/log/common/log.js';
+import { IContextKeyService, IContextKey } from '../../vs/platform/contextkey/common/contextkey.js';
 import { ILanguageFeaturesService } from '../../vs/editor/common/services/languageFeatures.js';
 import { Position } from '../../vs/editor/common/core/position.js';
 import { Range } from '../../vs/editor/common/core/range.js';
@@ -25,6 +26,7 @@ import { ITextModel } from '../../vs/editor/common/model.js';
 import { INyrveCompletionEngine, CompletionResult } from './completion-engine.js';
 import { INyrveCompletionPostProcessor } from './completion-postprocessor.js';
 import { INyrveCompletionTrigger, TriggerKind, TriggerDecision, EditorChangeEvent } from './completion-trigger.js';
+import { RawContextKey } from '../../vs/platform/contextkey/common/contextkey.js';
 
 // --- Types ---
 
@@ -67,6 +69,10 @@ export interface INyrveGhostTextRenderer {
 	previous(): void;
 }
 
+// --- Context Keys ---
+
+export const NyrveCompletionVisibleContext = new RawContextKey<boolean>('nyrveCompletionVisible', false);
+
 // --- Constants ---
 
 const MAX_PREVIEW_LINES = 3;
@@ -85,6 +91,7 @@ export class NyrveGhostTextRenderer extends Disposable implements INyrveGhostTex
 	private _currentResult: CompletionResult | undefined;
 	private _debounceTimer: ReturnType<typeof setTimeout> | undefined;
 	private readonly _providerRegistration = this._register(new MutableDisposable());
+	private readonly _completionVisibleKey: IContextKey<boolean>;
 
 	private _state: GhostTextState = { visible: false, text: '', lineCount: 0, previewText: '' };
 
@@ -97,10 +104,12 @@ export class NyrveGhostTextRenderer extends Disposable implements INyrveGhostTex
 		@INyrveCompletionEngine private readonly completionEngine: INyrveCompletionEngine,
 		@INyrveCompletionPostProcessor private readonly postProcessor: INyrveCompletionPostProcessor,
 		@INyrveCompletionTrigger private readonly trigger: INyrveCompletionTrigger,
+		@IContextKeyService contextKeyService: IContextKeyService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@ILogService private readonly logService: ILogService,
 	) {
 		super();
+		this._completionVisibleKey = NyrveCompletionVisibleContext.bindTo(contextKeyService);
 		this._registerProvider();
 	}
 
@@ -331,6 +340,7 @@ export class NyrveGhostTextRenderer extends Disposable implements INyrveGhostTex
 
 	private _updateState(state: GhostTextState): void {
 		this._state = state;
+		this._completionVisibleKey.set(state.visible);
 		this._onDidChangeState.fire(state);
 	}
 

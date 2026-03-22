@@ -16,7 +16,7 @@ import { URI } from '../../vs/base/common/uri.js';
 import { INyrveAgentEngine, NyrveAgentRequest } from '../agent/agent-engine.js';
 import { INyrveVerificationEngine } from '../agent/verification-engine.js';
 import { INyrveTokenTracker } from '../agent/token-tracker.js';
-import { NyrveChangeSet, NyrveFileChange, ChangeSetStatus, HunkStatus } from '../ui/diff-review/diff-panel.js';
+import { NyrveChangeSet, NyrveFileChange, ChangeSetStatus, HunkStatus, INyrveDiffService } from '../ui/diff-review/diff-panel.js';
 import {
 	Plan,
 	PlanStep,
@@ -97,6 +97,7 @@ export class NyrvePlanExecutor extends Disposable implements INyrvePlanExecutor 
 		@INyrveVerificationEngine private readonly verificationEngine: INyrveVerificationEngine,
 		@INyrveTokenTracker private readonly tokenTracker: INyrveTokenTracker,
 		@INyrvePlanStorage private readonly planStorage: INyrvePlanStorage,
+		@INyrveDiffService private readonly diffService: INyrveDiffService,
 		@IFileService private readonly fileService: IFileService,
 		@IWorkspaceContextService private readonly workspaceContextService: IWorkspaceContextService,
 		@IConfigurationService _configurationService: IConfigurationService,
@@ -291,6 +292,14 @@ export class NyrvePlanExecutor extends Disposable implements INyrvePlanExecutor 
 					`[Nyrve] Step ${stepIndex + 1} verification: ${report.status} ` +
 					`(confidence: ${report.confidence}%)`
 				);
+
+				// Send verified changeset to diff review UI
+				if (verificationPassed) {
+					await this.diffService.proposeChanges(
+						changeset.description,
+						changeset.files.map(f => ({ filePath: f.filePath, proposedContent: f.proposedContent })),
+					);
+				}
 			}
 
 			const duration = Date.now() - startTime;
