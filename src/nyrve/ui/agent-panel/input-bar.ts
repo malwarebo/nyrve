@@ -112,7 +112,7 @@ export class NyrveInputBar extends Disposable {
 
 		// Input row: wrapper + send button
 		const inputRow = $('div.nyrve-input-row');
-		inputRow.style.cssText = 'display: flex; gap: 6px; align-items: flex-end;';
+		inputRow.style.cssText = 'display: flex; gap: 6px; align-items: center;';
 
 		// Input wrapper (textarea + tool buttons)
 		const inputWrapper = $('div.nyrve-input-wrapper');
