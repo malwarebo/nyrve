@@ -19,6 +19,7 @@ import {
 } from "../../../vs/platform/workspace/common/workspace.js";
 import { IConfigurationService } from "../../../vs/platform/configuration/common/configuration.js";
 import { TestConfigurationService } from "../../../vs/platform/configuration/test/common/testConfigurationService.js";
+import { INyrveSqliteStorage } from "../sqlite-storage.js";
 
 suite("Nyrve: MemoryEngine", () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -35,12 +36,17 @@ suite("Nyrve: MemoryEngine", () => {
 			"nyrve.memory.maxEntries": 1000,
 			...config,
 		});
+		const sqliteStorage = new (class extends mock<INyrveSqliteStorage>() {
+			override get isReady(): boolean { return false; }
+			override async initialize(): Promise<void> { }
+		})();
 		return store.add(
 			new NyrveMemoryEngine(
 				fileService,
 				workspaceService,
 				configService as unknown as IConfigurationService,
 				new NullLogService(),
+				sqliteStorage,
 			),
 		);
 	}

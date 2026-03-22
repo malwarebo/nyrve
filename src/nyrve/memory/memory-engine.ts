@@ -13,6 +13,7 @@ import { ILogService } from '../../vs/platform/log/common/log.js';
 import { IWorkspaceContextService } from '../../vs/platform/workspace/common/workspace.js';
 import { IConfigurationService } from '../../vs/platform/configuration/common/configuration.js';
 import { VSBuffer } from '../../vs/base/common/buffer.js';
+import { INyrveSqliteStorage } from './sqlite-storage.js';
 
 // --- Text Utilities ---
 
@@ -141,11 +142,56 @@ export class NyrveMemoryEngine extends Disposable implements INyrveMemoryEngine 
 		@IWorkspaceContextService private readonly workspaceService: IWorkspaceContextService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@ILogService private readonly logService: ILogService,
+		@INyrveSqliteStorage private readonly sqliteStorage: INyrveSqliteStorage,
 	) {
 		super();
 	}
 
 	async load(): Promise<void> {
+		// Try SQLite first
+		if (await this._loadFromSqlite()) {
+			// Migrate: clean up old JSON file if it exists
+			this._deleteJsonFile();
+			return;
+		}
+
+		// Fall back to JSON (legacy migration path)
+		await this._loadFromJson();
+
+		// If we loaded from JSON and SQLite is available, migrate data
+		if (this._memories.size > 0 && this.sqliteStorage.isReady) {
+			await this._migrateToSqlite();
+		}
+	}
+
+	private async _loadFromSqlite(): Promise<boolean> {
+		try {
+			await this.sqliteStorage.initialize();
+			if (!this.sqliteStorage.isReady) {
+				return false;
+			}
+
+			const rows = await this.sqliteStorage.all<MemoryRow>(
+				'SELECT * FROM memories'
+			);
+
+			if (rows.length === 0) {
+				return false;
+			}
+
+			this._memories.clear();
+			for (const row of rows) {
+				const entry = this._rowToEntry(row);
+				this._memories.set(entry.id, entry);
+			}
+			this.logService.info(`[Nyrve] Loaded ${this._memories.size} memories from SQLite`);
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	private async _loadFromJson(): Promise<void> {
 		const uri = this._getStorageUri();
 		if (!uri) {
 			return;
@@ -163,13 +209,76 @@ export class NyrveMemoryEngine extends Disposable implements INyrveMemoryEngine 
 			for (const entry of entries) {
 				this._memories.set(entry.id, entry);
 			}
-			this.logService.info(`[Nyrve] Loaded ${this._memories.size} memories`);
+			this.logService.info(`[Nyrve] Loaded ${this._memories.size} memories from JSON (legacy)`);
 		} catch (e) {
 			this.logService.warn(`[Nyrve] Failed to load memories: ${e}`);
 		}
 	}
 
+	private async _migrateToSqlite(): Promise<void> {
+		try {
+			for (const entry of this._memories.values()) {
+				await this.sqliteStorage.run(
+					`INSERT OR REPLACE INTO memories (id, type, content, embedding, created_at, last_accessed_at, access_count, source, tags, confidence, user_verified)
+					 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+					[entry.id, entry.type, entry.content, JSON.stringify(entry.embedding),
+					 entry.createdAt, entry.lastAccessedAt, entry.accessCount, entry.source,
+					 JSON.stringify(entry.tags), entry.confidence, entry.userVerified ? 1 : 0],
+				);
+			}
+			this.logService.info(`[Nyrve] Migrated ${this._memories.size} memories to SQLite`);
+			this._deleteJsonFile();
+		} catch (e) {
+			this.logService.warn(`[Nyrve] Failed to migrate memories to SQLite: ${e}`);
+		}
+	}
+
+	private async _deleteJsonFile(): Promise<void> {
+		const uri = this._getStorageUri();
+		if (!uri) {
+			return;
+		}
+		try {
+			const exists = await this.fileService.exists(uri);
+			if (exists) {
+				await this.fileService.del(uri);
+				this.logService.info('[Nyrve] Removed legacy memory.json after SQLite migration');
+			}
+		} catch {
+			// Ignore cleanup failures
+		}
+	}
+
 	async save(): Promise<void> {
+		// Save to SQLite if available
+		if (this.sqliteStorage.isReady) {
+			await this._saveToSqlite();
+			return;
+		}
+
+		// Fallback to JSON
+		await this._saveToJson();
+	}
+
+	private async _saveToSqlite(): Promise<void> {
+		try {
+			for (const entry of this._memories.values()) {
+				await this.sqliteStorage.run(
+					`INSERT OR REPLACE INTO memories (id, type, content, embedding, created_at, last_accessed_at, access_count, source, tags, confidence, user_verified)
+					 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+					[entry.id, entry.type, entry.content, JSON.stringify(entry.embedding),
+					 entry.createdAt, entry.lastAccessedAt, entry.accessCount, entry.source,
+					 JSON.stringify(entry.tags), entry.confidence, entry.userVerified ? 1 : 0],
+				);
+			}
+			this.logService.trace(`[Nyrve] Saved ${this._memories.size} memories to SQLite`);
+		} catch (e) {
+			this.logService.warn(`[Nyrve] Failed to save memories to SQLite: ${e}`);
+			await this._saveToJson();
+		}
+	}
+
+	private async _saveToJson(): Promise<void> {
 		const uri = this._getStorageUri();
 		if (!uri) {
 			return;
@@ -369,6 +478,22 @@ export class NyrveMemoryEngine extends Disposable implements INyrveMemoryEngine 
 		}
 	}
 
+	private _rowToEntry(row: MemoryRow): MemoryEntry {
+		return {
+			id: row.id,
+			type: row.type as MemoryType,
+			content: row.content,
+			embedding: JSON.parse(row.embedding),
+			createdAt: row.created_at,
+			lastAccessedAt: row.last_accessed_at,
+			accessCount: row.access_count,
+			source: row.source as MemorySource,
+			tags: JSON.parse(row.tags),
+			confidence: row.confidence,
+			userVerified: row.user_verified === 1,
+		};
+	}
+
 	private _getStorageUri(): URI | undefined {
 		const workspace = this.workspaceService.getWorkspace();
 		const projectRoot = workspace.folders[0]?.uri;
@@ -377,6 +502,20 @@ export class NyrveMemoryEngine extends Disposable implements INyrveMemoryEngine 
 		}
 		return URI.joinPath(projectRoot, '.nyrve', 'memory.json');
 	}
+}
+
+interface MemoryRow {
+	id: string;
+	type: string;
+	content: string;
+	embedding: string;
+	created_at: string;
+	last_accessed_at: string;
+	access_count: number;
+	source: string;
+	tags: string;
+	confidence: number;
+	user_verified: number;
 }
 
 registerSingleton(INyrveMemoryEngine, NyrveMemoryEngine, InstantiationType.Delayed);
