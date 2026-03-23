@@ -8,7 +8,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
 
-import glob from 'glob';
+import * as _globModule from 'glob';
+const glob = ((_globModule as any).default || _globModule) as typeof import('glob');
 import gulpWatch from '../lib/watch/index.ts';
 import { nlsPlugin, createNLSCollector, finalizeNLS, postProcessNLS } from './nls-plugin.ts';
 import { convertPrivateFields, adjustSourceMap, type ConvertPrivateFieldsResult } from './private-to-property.ts';

@@ -141,7 +141,7 @@ export default {
 
 		return {
 			ExpressionStatement(node: TSESTree.ExpressionStatement) {
-				if (!isValidExpression(node.expression) && !isDirective(node, context.sourceCode.getAncestors(node as ESTree.Node) as TSESTree.Node[])) {
+				if (!isValidExpression(node.expression) && !isDirective(node, context.getSourceCode().getAncestors(node as ESTree.Node) as TSESTree.Node[])) {
 					context.report({ node: node as ESTree.Node, message: `Expected an assignment or function call and instead saw an expression. ${node.expression}` });
 				}
 			}

@@ -117,10 +117,10 @@ suite('Nyrve: MemoryEngine BM25 Search', () => {
 			));
 		})();
 
-		add(smallEngine, 'low confidence entry', [], 0.1);
-		add(smallEngine, 'medium confidence', [], 0.5);
-		add(smallEngine, 'high confidence', [], 0.9);
-		add(smallEngine, 'new entry', [], 0.8);
+		smallEngine.addMemory({ type: MemoryType.Convention, content: 'low confidence entry', embedding: [], source: MemorySource.Conversation, tags: [], confidence: 0.1, userVerified: false });
+		smallEngine.addMemory({ type: MemoryType.Convention, content: 'medium confidence', embedding: [], source: MemorySource.Conversation, tags: [], confidence: 0.5, userVerified: false });
+		smallEngine.addMemory({ type: MemoryType.Convention, content: 'high confidence', embedding: [], source: MemorySource.Conversation, tags: [], confidence: 0.9, userVerified: false });
+		smallEngine.addMemory({ type: MemoryType.Convention, content: 'new entry', embedding: [], source: MemorySource.Conversation, tags: [], confidence: 0.8, userVerified: false });
 
 		assert.strictEqual(smallEngine.getAllMemories().length, 3);
 		// The low confidence non-verified entry should have been evicted

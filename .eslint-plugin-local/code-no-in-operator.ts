@@ -31,7 +31,7 @@ export default new class NoInOperator implements eslint.Rule.RuleModule {
 		function checkInOperator(inNode: ESTree.BinaryExpression) {
 			const node = inNode as TSESTree.BinaryExpression;
 			// Check if we're inside a type predicate function
-			const ancestors = context.sourceCode.getAncestors(node as ESTree.Node);
+			const ancestors = context.getSourceCode().getAncestors(node as ESTree.Node);
 
 			for (const ancestor of ancestors) {
 				if (ancestor.type === 'FunctionDeclaration' ||

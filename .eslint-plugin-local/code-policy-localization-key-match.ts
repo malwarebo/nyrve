@@ -116,7 +116,7 @@ export default new class PolicyLocalizationKeyMatch implements eslint.Rule.RuleM
 
 		function isInPolicyBlock(node: ESTree.Node): boolean {
 			// Walk up the AST to see if we're inside a policy object
-			const ancestors = context.sourceCode.getAncestors(node);
+			const ancestors = context.getSourceCode().getAncestors(node);
 
 			for (const ancestor of ancestors) {
 				if (ancestor.type === 'Property') {

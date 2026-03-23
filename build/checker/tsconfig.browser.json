@@ -4,7 +4,8 @@
 		"lib": [
 			"ES2024",
 			"DOM",
-			"DOM.Iterable"
+			"DOM.Iterable",
+			"esnext.disposable"
 		],
 		"types": [],
 		"noEmit": true,

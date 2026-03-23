@@ -16,7 +16,7 @@ export default new class implements eslint.Rule.RuleModule {
 
 		function checkProperty(inNode: TSESTree.PropertyDefinition) {
 
-			const classDeclaration = context.sourceCode.getAncestors(inNode as ESTree.Node).find(node => node.type === 'ClassDeclaration');
+			const classDeclaration = context.getSourceCode().getAncestors(inNode as ESTree.Node).find(node => node.type === 'ClassDeclaration');
 			const propertyDefinition = inNode;
 
 			if (!classDeclaration || !classDeclaration.id?.name) {
@@ -34,7 +34,7 @@ export default new class implements eslint.Rule.RuleModule {
 			}
 
 			const name = classDeclaration.id.name;
-			const valueText = context.sourceCode.getText(propertyDefinition.value as ESTree.Node);
+			const valueText = context.getSourceCode().getText(propertyDefinition.value as ESTree.Node);
 
 			if (valueText.includes(name + '.')) {
 				if (classCtor.value?.type === 'FunctionExpression' && !classCtor.value.params.find((param: any) => param.type === 'TSParameterProperty' && param.decorators?.length > 0)) {

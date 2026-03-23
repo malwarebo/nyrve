@@ -100,7 +100,7 @@ suite('Nyrve: SelfHealer', () => {
 		const result = await healer.heal(changeset, failures, 1);
 		assert.strictEqual(result.status, 'healed');
 		assert.strictEqual(result.fixesApplied.length, 1);
-		assert.strictEqual(result.updatedChangeset.files[0].proposedContent, 'const x: number = 42;');
+		assert.strictEqual(result.updatedChangeset.files[0].proposedContent, 'const x: number = 42;\n');
 	});
 
 	test('rejects fixes that contain .skip() patterns', async () => {

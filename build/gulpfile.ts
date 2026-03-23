@@ -5,7 +5,8 @@
 import { EventEmitter } from 'events';
 EventEmitter.defaultMaxListeners = 100;
 
-import glob from 'glob';
+import * as _globModule from 'glob';
+const glob = ((_globModule as any).default || _globModule) as typeof import('glob');
 import gulp from 'gulp';
 import { createRequire } from 'node:module';
 import { monacoTypecheckTask /* , monacoTypecheckWatchTask */ } from './gulpfile.editor.ts';

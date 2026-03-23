@@ -6,7 +6,9 @@
 import ts from 'typescript';
 import { readFileSync, existsSync } from 'fs';
 import { resolve, dirname, join } from 'path';
-import minimatch from 'minimatch';
+import * as _minimatchModule from 'minimatch';
+const _mm = (_minimatchModule as any).default || _minimatchModule;
+const minimatch: typeof import('minimatch').minimatch = typeof _mm === 'function' ? _mm : _mm.minimatch;
 
 //
 // #############################################################################################

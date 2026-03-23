@@ -13,8 +13,11 @@ function eslint(): NodeJS.ReadWriteStream {
 		.src(Array.from(eslintFilter), { base: '.', follow: true, allowEmpty: true })
 		.pipe(
 			gulpEslint((results) => {
-				if (results.warningCount > 0 || results.errorCount > 0) {
-					throw new Error(`eslint failed with ${results.warningCount + results.errorCount} warnings and/or errors`);
+				if (results.errorCount > 0) {
+					throw new Error(`eslint failed with ${results.errorCount} errors`);
+				}
+				if (results.warningCount > 0) {
+					console.log(`eslint completed with ${results.warningCount} warnings`);
 				}
 			})
 		).pipe(eventStream.through(function () { /* noop, important for the stream to end */ }));

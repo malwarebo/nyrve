@@ -9,7 +9,8 @@ EventEmitter.defaultMaxListeners = 100;
 
 import es from 'event-stream';
 import fancyLog from 'fancy-log';
-import glob from 'glob';
+import * as _globModule from 'glob';
+const glob = ((_globModule as any).default || _globModule) as typeof import('glob');
 import gulp from 'gulp';
 import filter from 'gulp-filter';
 import plumber from 'gulp-plumber';

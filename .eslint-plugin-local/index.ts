@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import type { LooseRuleDefinition } from '@typescript-eslint/utils/ts-eslint';
-import glob from 'glob';
+import * as _globModule from 'glob';
+const glob = ((_globModule as any).default || _globModule) as typeof import('glob');
 import { createRequire } from 'module';
 import path from 'path';
 

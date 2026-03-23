@@ -5,7 +5,9 @@
 
 import * as eslint from 'eslint';
 import { dirname, relative } from 'path';
-import minimatch from 'minimatch';
+import * as _minimatchModule from 'minimatch';
+const _mm = (_minimatchModule as any).default || _minimatchModule;
+const minimatch: typeof import('minimatch').minimatch = typeof _mm === 'function' ? _mm : _mm.minimatch;
 import type * as ESTree from 'estree';
 
 export default new class implements eslint.Rule.RuleModule {

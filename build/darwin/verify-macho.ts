@@ -7,7 +7,9 @@ import assert from 'assert';
 import path from 'path';
 import { open, stat, readdir, realpath } from 'fs/promises';
 import { spawn, ExitCodeError } from '@malept/cross-spawn-promise';
-import minimatch from 'minimatch';
+import * as _minimatchModule from 'minimatch';
+const _mm = (_minimatchModule as any).default || _minimatchModule;
+const minimatch: typeof import('minimatch').minimatch = typeof _mm === 'function' ? _mm : _mm.minimatch;
 
 const MACHO_PREFIX = 'Mach-O ';
 const MACHO_64_MAGIC_LE = 0xfeedfacf;

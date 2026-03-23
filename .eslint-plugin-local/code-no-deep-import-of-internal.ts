@@ -32,7 +32,7 @@ export default new class implements eslint.Rule.RuleModule {
 		const allowedPatterns = Object.entries(patterns).map(([key, v]) => !v ? key : undefined).filter((v): v is string => !!v);
 
 		return createImportRuleListener((node, path) => {
-			const importerModuleDir = dirname(context.filename);
+			const importerModuleDir = dirname(context.getFilename());
 			if (path[0] === '.') {
 				path = join(importerModuleDir, path);
 			}

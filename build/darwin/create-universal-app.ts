@@ -5,7 +5,9 @@
 
 import path from 'path';
 import fs from 'fs';
-import minimatch from 'minimatch';
+import * as _minimatchModule from 'minimatch';
+const _mm = (_minimatchModule as any).default || _minimatchModule;
+const minimatch: typeof import('minimatch').minimatch = typeof _mm === 'function' ? _mm : _mm.minimatch;
 import { makeUniversalApp } from 'vscode-universal-bundler';
 
 const root = path.dirname(path.dirname(import.meta.dirname));

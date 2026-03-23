@@ -33,7 +33,7 @@ export default new class NoDeclareConstEnum implements eslint.Rule.RuleModule {
 						messageId: 'noDeclareConstEnum',
 						fix: (fixer) => {
 							// Remove "declare " from "declare const enum"
-							const sourceCode = context.sourceCode;
+							const sourceCode = context.getSourceCode();
 							const text = sourceCode.getText(node);
 							const declareIndex = text.indexOf('declare');
 							if (declareIndex !== -1) {
