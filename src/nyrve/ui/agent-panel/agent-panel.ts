@@ -65,6 +65,7 @@ export class NyrveAgentViewPane extends ViewPane {
 	private agentContent!: HTMLElement;
 	private planContent!: HTMLElement;
 	private taskContent!: HTMLElement;
+	private messagesContainer!: HTMLElement;
 	private _currentMode: PanelMode = "agent";
 
 	private currentStreamContent = "";
@@ -189,9 +190,10 @@ export class NyrveAgentViewPane extends ViewPane {
 			"display: flex; flex-direction: column; flex: 1; overflow: hidden;";
 		this.welcomeState.render(this.agentContent);
 
-		// Message renderer (hidden initially)
+		// Message renderer (hidden initially — welcome state needs the full space)
 		this.messageRenderer = this._register(new NyrveMessageRenderer());
-		this.messageRenderer.render(this.agentContent);
+		this.messagesContainer = this.messageRenderer.render(this.agentContent);
+		this.messagesContainer.style.display = "none";
 
 		this.contentArea.appendChild(this.agentContent);
 
@@ -322,18 +324,22 @@ export class NyrveAgentViewPane extends ViewPane {
 
 	private _showConversation(): void {
 		this.welcomeState.hide();
+		this.messagesContainer.style.display = "";
 	}
 
 	private _updateWelcomeVisibility(): void {
 		if (this._currentMode !== "agent") {
 			this.welcomeState.hide();
+			this.messagesContainer.style.display = "";
 			return;
 		}
 		const conversation = this.agentService.getConversation();
 		if (conversation.messages.length === 0) {
 			this.welcomeState.show();
+			this.messagesContainer.style.display = "none";
 		} else {
 			this.welcomeState.hide();
+			this.messagesContainer.style.display = "";
 		}
 	}
 

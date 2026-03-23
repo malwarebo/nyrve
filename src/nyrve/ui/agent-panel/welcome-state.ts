@@ -63,7 +63,7 @@ const QUICK_ACTIONS: QuickAction[] = [
 const CONTEXT_CHIPS = ['@active', '@errors', '@git-diff', '@tests', '@terminal', '@search'];
 
 // Flame SVG without background rect — just the flame paths
-const FLAME_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="36" height="36"><defs><linearGradient id="wf-outer" x1="0.3" y1="1" x2="0.7" y2="0"><stop offset="0%" stop-color="#993C1D"/><stop offset="40%" stop-color="#D85A30"/><stop offset="70%" stop-color="#EF9F27"/><stop offset="100%" stop-color="#FAC775"/></linearGradient><linearGradient id="wf-inner" x1="0.5" y1="1" x2="0.5" y2="0"><stop offset="0%" stop-color="#EF9F27"/><stop offset="60%" stop-color="#FAC775"/><stop offset="100%" stop-color="#FAEEDA"/></linearGradient></defs><path d="M256 56 C362 140, 432 244, 432 320 C432 416, 352 480, 256 480 C160 480, 80 416, 80 320 C80 244, 150 140, 256 56Z" fill="url(#wf-outer)"/><path d="M256 186 C309 250, 346 300, 346 344 C346 394, 306 420, 256 420 C206 420, 166 394, 166 344 C166 300, 203 250, 256 186Z" fill="url(#wf-inner)" opacity="0.85"/><ellipse cx="256" cy="356" rx="42" ry="46" fill="#FAEEDA" opacity="0.4"/></svg>';
+const FLAME_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="28" height="28"><defs><linearGradient id="wf-outer" x1="0.3" y1="1" x2="0.7" y2="0"><stop offset="0%" stop-color="#993C1D"/><stop offset="40%" stop-color="#D85A30"/><stop offset="70%" stop-color="#EF9F27"/><stop offset="100%" stop-color="#FAC775"/></linearGradient><linearGradient id="wf-inner" x1="0.5" y1="1" x2="0.5" y2="0"><stop offset="0%" stop-color="#EF9F27"/><stop offset="60%" stop-color="#FAC775"/><stop offset="100%" stop-color="#FAEEDA"/></linearGradient></defs><path d="M256 56 C362 140, 432 244, 432 320 C432 416, 352 480, 256 480 C160 480, 80 416, 80 320 C80 244, 150 140, 256 56Z" fill="url(#wf-outer)"/><path d="M256 186 C309 250, 346 300, 346 344 C346 394, 306 420, 256 420 C206 420, 166 394, 166 344 C166 300, 203 250, 256 186Z" fill="url(#wf-inner)" opacity="0.85"/><ellipse cx="256" cy="356" rx="42" ry="46" fill="#FAEEDA" opacity="0.4"/></svg>';
 
 // --- Welcome State Component ---
 
@@ -80,24 +80,24 @@ export class NyrveWelcomeState extends Disposable {
 
 	render(parent: HTMLElement): HTMLElement {
 		this._element = $('div.nyrve-welcome-state');
-		this._element.style.cssText = 'display: flex; flex-direction: column; align-items: center; flex: 1; padding: 24px 16px; gap: 0; overflow: hidden;';
+		this._element.style.cssText = 'display: flex; flex-direction: column; align-items: center; flex: 1; padding: 12px 16px; gap: 0; overflow-y: auto;';
 
 		// Flame icon
 		const flameContainer = $('div.nyrve-welcome-flame');
-		flameContainer.style.cssText = 'margin-bottom: 12px;';
+		flameContainer.style.cssText = 'margin-bottom: 6px;';
 		flameContainer.innerHTML = (ttPolicy?.createHTML(FLAME_SVG) ?? FLAME_SVG) as unknown as string;
 		this._element.appendChild(flameContainer);
 
 		// Title
 		const title = $('div.nyrve-welcome-title');
 		title.textContent = localize('nyrve.welcome.title', "What are you working on?");
-		title.style.cssText = 'font-size: 16px; font-weight: 500; color: #e8e6de; text-align: center; margin-bottom: 4px;';
+		title.style.cssText = 'font-size: 14px; font-weight: 500; color: #e8e6de; text-align: center; margin-bottom: 2px;';
 		this._element.appendChild(title);
 
 		// Subtitle
 		const subtitle = $('div.nyrve-welcome-subtitle');
 		subtitle.textContent = localize('nyrve.welcome.subtitle', "Nyrve sees your files, terminal, and git. Every change is verified before you see it.");
-		subtitle.style.cssText = 'font-size: 11px; font-weight: 400; color: #888780; text-align: center; line-height: 1.5; max-width: 300px; margin-bottom: 12px;';
+		subtitle.style.cssText = 'font-size: 11px; font-weight: 400; color: #888780; text-align: center; line-height: 1.4; max-width: 300px; margin-bottom: 8px;';
 		this._element.appendChild(subtitle);
 
 		// Quick action cards — 2x2 grid
@@ -111,7 +111,7 @@ export class NyrveWelcomeState extends Disposable {
 
 		// Divider
 		const divider = $('div.nyrve-welcome-divider');
-		divider.style.cssText = 'width: 100%; max-width: 340px; height: 1px; background: #2e2d28; margin: 10px 0;';
+		divider.style.cssText = 'width: 100%; max-width: 340px; height: 1px; background: #2e2d28; margin: 6px 0;';
 		this._element.appendChild(divider);
 
 		// Project status section
@@ -142,10 +142,10 @@ export class NyrveWelcomeState extends Disposable {
 
 	private _createActionCard(action: QuickAction): HTMLElement {
 		const card = $('div.nyrve-action-card');
-		card.style.cssText = 'background: #27261f; border: 1px solid #3a382f; border-radius: 10px; padding: 10px; cursor: pointer;';
+		card.style.cssText = 'background: #27261f; border: 1px solid #3a382f; border-radius: 8px; padding: 8px; cursor: pointer;';
 
 		const iconRow = $('div');
-		iconRow.style.cssText = 'margin-bottom: 6px;';
+		iconRow.style.cssText = 'margin-bottom: 4px;';
 		iconRow.innerHTML = (ttPolicy?.createHTML(action.iconSvg) ?? action.iconSvg) as unknown as string;
 		card.appendChild(iconRow);
 
@@ -180,7 +180,7 @@ export class NyrveWelcomeState extends Disposable {
 
 		const label = $('div.nyrve-section-label');
 		label.textContent = localize('nyrve.welcome.projectStatus', "Project status");
-		label.style.cssText = 'font-size: 11px; font-weight: 500; color: #5F5E5A; letter-spacing: 0.3px; margin-bottom: 6px;';
+		label.style.cssText = 'font-size: 11px; font-weight: 500; color: #5F5E5A; letter-spacing: 0.3px; margin-bottom: 4px;';
 		section.appendChild(label);
 
 		const defaultItems: ProjectStatusItem[] = [
@@ -190,11 +190,11 @@ export class NyrveWelcomeState extends Disposable {
 		];
 
 		const list = $('div.nyrve-status-list');
-		list.style.cssText = 'display: flex; flex-direction: column; gap: 4px;';
+		list.style.cssText = 'display: flex; flex-direction: column; gap: 2px;';
 
 		for (const item of defaultItems) {
 			const card = $('div.nyrve-status-card');
-			card.style.cssText = 'display: flex; align-items: center; gap: 8px; background: #27261f; border-radius: 6px; padding: 6px 10px;';
+			card.style.cssText = 'display: flex; align-items: center; gap: 8px; background: #27261f; border-radius: 6px; padding: 4px 10px;';
 
 			const dot = $('span.nyrve-status-dot');
 			dot.style.cssText = `width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: ${item.dotColor};`;
@@ -220,15 +220,15 @@ export class NyrveWelcomeState extends Disposable {
 
 	private _createContextMentionsSection(): HTMLElement {
 		const section = $('div.nyrve-welcome-mentions');
-		section.style.cssText = 'width: 100%; max-width: 340px; margin-top: 10px;';
+		section.style.cssText = 'width: 100%; max-width: 340px; margin-top: 6px;';
 
 		const label = $('div.nyrve-section-label');
 		label.textContent = localize('nyrve.welcome.contextMentions', "Context mentions");
-		label.style.cssText = 'font-size: 11px; font-weight: 500; color: #5F5E5A; letter-spacing: 0.3px; margin-bottom: 8px;';
+		label.style.cssText = 'font-size: 11px; font-weight: 500; color: #5F5E5A; letter-spacing: 0.3px; margin-bottom: 4px;';
 		section.appendChild(label);
 
 		const row = $('div.nyrve-chips-row');
-		row.style.cssText = 'display: flex; flex-wrap: wrap; gap: 5px;';
+		row.style.cssText = 'display: flex; flex-wrap: wrap; gap: 4px;';
 
 		for (const chip of CONTEXT_CHIPS) {
 			const chipEl = $('button.nyrve-chip');

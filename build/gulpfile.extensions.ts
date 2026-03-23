@@ -175,14 +175,18 @@ const tasks = compilations.map(function (tsconfigFile) {
 
 	const cleanTask = task.define(`clean-extension-${name}`, util.rimraf(out));
 
-	const transpileTask = task.define(`transpile-extension:${name}`, task.series(cleanTask, () => {
+	const transpileTask = task.define(`transpile-extension:${name}`, task.series(cleanTask, async () => {
 		const pipeline = createPipeline(false, true, true);
 		const nonts = gulp.src([src, '!**/fixtures/**'], srcOpts).pipe(filter(['**', '!**/*.ts']));
-		const input = es.merge(nonts, pipeline.tsProjectSrc());
 
-		return input
-			.pipe(pipeline())
-			.pipe(gulp.dest(out));
+		await Promise.all([
+			util.streamToPromise(nonts.pipe(gulp.dest(out))),
+			util.streamToPromise(
+				pipeline.tsProjectSrc()
+					.pipe(pipeline())
+					.pipe(gulp.dest(out))
+			),
+		]);
 	}));
 
 	const compileTask = task.define(`compile-extension:${name}`, task.series(cleanTask, async () => {
@@ -193,18 +197,15 @@ const tasks = compilations.map(function (tsconfigFile) {
 		await Promise.all([copyNonTs, tsgo]);
 	}));
 
-	const watchTask = task.define(`watch-extension:${name}`, task.series(cleanTask, () => {
-		const nonts = gulp.src(src, srcOpts).pipe(filter(['**', '!**/*.ts'], { dot: true }));
-		const watchInput = watcher(src, { ...srcOpts, ...{ readDelay: 200 } });
-		const watchNonTs = watchInput.pipe(filter(['**', '!**/*.ts'], { dot: true })).pipe(gulp.dest(out));
-		const tsgoStream = watchInput.pipe(util.debounce(() => {
+	const watchTask = task.define(`watch-extension:${name}`, task.series(cleanTask, async () => {
+		const nonts = gulp.src([src, '!**/fixtures/**'], srcOpts).pipe(filter(['**', '!**/*.ts'], { dot: true }));
+		await util.streamToPromise(nonts.pipe(gulp.dest(out)));
+
+		const watchInput = watcher([src, '!**/fixtures/**'], { ...srcOpts, ...{ readDelay: 200 } });
+		watchInput.pipe(filter(['**', '!**/*.ts'], { dot: true })).pipe(gulp.dest(out));
+		watchInput.pipe(util.debounce(() => {
 			onExtensionCompilationStart();
 			const stream = createTsgoStream(absolutePath, { taskName: 'extensions' }, () => rewriteTsgoSourceMappingUrlsIfNeeded(false, out, baseUrl));
-			// Wrap in a result stream that always emits 'end' (even on
-			// error) so the debounce resets to idle and can process future
-			// file changes. Errors from tsgo (e.g. type errors causing a
-			// non-zero exit code) are already reported by spawnTsgo's
-			// runReporter, so swallowing the stream error is safe.
 			const result = es.through();
 			stream.on('end', () => {
 				onExtensionCompilationEnd();
@@ -216,9 +217,8 @@ const tasks = compilations.map(function (tsconfigFile) {
 			});
 			return result;
 		}, 200));
-		const watchStream = es.merge(nonts.pipe(gulp.dest(out)), watchNonTs, tsgoStream);
 
-		return watchStream;
+		return new Promise<void>(() => { /* never resolves — watch runs forever */ });
 	}));
 
 	// Tasks
