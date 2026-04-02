@@ -132,6 +132,7 @@ export class NyrveAuthService extends Disposable implements INyrveAuthService {
 
 	async storeApiKey(key: string): Promise<void> {
 		await this.secretStorageService.set(ANTHROPIC_API_KEY_SECRET, key);
+		this.apiClient.clearClientCache();
 		this.logService.info('[Nyrve] Anthropic API key stored in OS keychain');
 
 		// Validate and update status
@@ -148,6 +149,7 @@ export class NyrveAuthService extends Disposable implements INyrveAuthService {
 
 	async deleteApiKey(): Promise<void> {
 		await this.secretStorageService.delete(ANTHROPIC_API_KEY_SECRET);
+		this.apiClient.clearClientCache();
 		this._stopHealthCheck();
 		this._cachedModels = undefined;
 		this._setStatus('no-key');

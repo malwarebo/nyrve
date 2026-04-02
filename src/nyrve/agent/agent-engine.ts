@@ -10,6 +10,7 @@ import { createDecorator } from '../../vs/platform/instantiation/common/instanti
 import { InstantiationType, registerSingleton } from '../../vs/platform/instantiation/common/extensions.js';
 import { ILogService } from '../../vs/platform/log/common/log.js';
 import { NyrveModelId, INyrveConfigService } from '../core/config.js';
+import { INyrveApiClient, AnthropicStreamEvent } from '../core/api-client.js';
 import { INyrveModelRouter } from './model-router.js';
 import { INyrveTokenTracker } from './token-tracker.js';
 
@@ -76,6 +77,7 @@ export class NyrveAgentEngine extends Disposable implements INyrveAgentEngine {
 
 	constructor(
 		@INyrveConfigService private readonly configService: INyrveConfigService,
+		@INyrveApiClient private readonly apiClient: INyrveApiClient,
 		@INyrveModelRouter private readonly modelRouter: INyrveModelRouter,
 		@INyrveTokenTracker private readonly tokenTracker: INyrveTokenTracker,
 		@ILogService private readonly logService: ILogService,
@@ -102,7 +104,9 @@ export class NyrveAgentEngine extends Disposable implements INyrveAgentEngine {
 		this.logService.info(`[Nyrve] Sending request to ${apiModelId} (streaming=${useStreaming})`);
 
 		try {
-			const response = await this._callAnthropicApi(apiKey, apiModelId, request, maxTokens, useStreaming, cancellation);
+			const response = useStreaming
+				? await this._sendStreaming(apiKey, apiModelId, request, maxTokens, cancellation)
+				: await this._sendNonStreaming(apiKey, apiModelId, request, maxTokens);
 			this.tokenTracker.recordUsage(model, response.inputTokens, response.outputTokens);
 			return { ...response, model };
 		} finally {
@@ -110,12 +114,11 @@ export class NyrveAgentEngine extends Disposable implements INyrveAgentEngine {
 		}
 	}
 
-	private async _callAnthropicApi(
+	private async _sendStreaming(
 		apiKey: string,
 		apiModelId: string,
 		request: NyrveAgentRequest,
 		maxTokens: number,
-		useStreaming: boolean,
 		cancellation: CancellationToken,
 	): Promise<Omit<NyrveAgentResponse, 'model'>> {
 		const apiMessages = request.messages.map(m => ({
@@ -123,136 +126,113 @@ export class NyrveAgentEngine extends Disposable implements INyrveAgentEngine {
 			content: m.content,
 		}));
 
-		const body: Record<string, unknown> = {
-			model: apiModelId,
-			max_tokens: maxTokens,
-			messages: apiMessages,
-		};
-		if (request.systemPrompt) {
-			body.system = request.systemPrompt;
-		}
-		if (useStreaming) {
-			body.stream = true;
-		}
+		let fullContent = '';
+		let inputTokens = 0;
+		let outputTokens = 0;
+		let stopReason = 'end_turn';
 
 		const abortController = new AbortController();
 		const cancelListener = cancellation.onCancellationRequested(() => {
 			abortController.abort();
 		});
 
-		try {
-			const response = await fetch('https://api.anthropic.com/v1/messages', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'x-api-key': apiKey,
-					'anthropic-version': '2023-06-01',
-				},
-				body: JSON.stringify(body),
-				signal: abortController.signal,
-			});
-
-			if (!response.ok) {
-				const errorText = await response.text();
-				this.logService.error(`[Nyrve] API error ${response.status}: ${errorText}`);
-				this._onDidReceiveStreamEvent.fire({ type: 'error', error: `API error ${response.status}: ${errorText}` });
-				throw new Error(`Anthropic API error ${response.status}: ${errorText}`);
-			}
-
-			if (useStreaming && response.body) {
-				return this._handleStreamResponse(response.body, cancellation);
-			} else {
-				return this._handleJsonResponse(response);
-			}
-		} finally {
-			cancelListener.dispose();
-		}
-	}
-
-	private async _handleStreamResponse(
-		body: ReadableStream<Uint8Array>,
-		cancellation: CancellationToken,
-	): Promise<Omit<NyrveAgentResponse, 'model'>> {
-		const reader = body.getReader();
-		const decoder = new TextDecoder();
-		let fullContent = '';
-		let inputTokens = 0;
-		let outputTokens = 0;
-		let stopReason = 'end_turn';
-		let buffer = '';
-
 		this._onDidReceiveStreamEvent.fire({ type: 'message_start' });
 
 		try {
-			while (true) {
-				if (cancellation.isCancellationRequested) {
-					reader.cancel();
-					stopReason = 'cancelled';
-					break;
-				}
-
-				const { done, value } = await reader.read();
-				if (done) {
-					break;
-				}
-
-				buffer += decoder.decode(value, { stream: true });
-				const lines = buffer.split('\n');
-				buffer = lines.pop() ?? '';
-
-				for (const line of lines) {
-					if (!line.startsWith('data: ')) {
-						continue;
-					}
-					const data = line.slice(6).trim();
-					if (data === '[DONE]') {
-						continue;
+			await this.apiClient.stream(
+				apiKey,
+				{
+					model: apiModelId,
+					max_tokens: maxTokens,
+					messages: apiMessages,
+					system: request.systemPrompt,
+				},
+				(event: AnthropicStreamEvent) => {
+					if (cancellation.isCancellationRequested) {
+						return;
 					}
 
-					try {
-						const event = JSON.parse(data);
-						if (event.type === 'content_block_delta' && event.delta?.text) {
-							fullContent += event.delta.text;
+					if (event.type === 'content_block_delta') {
+						const delta = event as AnthropicStreamEvent & { delta?: { text?: string } };
+						if (delta.delta?.text) {
+							fullContent += delta.delta.text;
 							this._onDidReceiveStreamEvent.fire({
 								type: 'text_delta',
-								text: event.delta.text,
+								text: delta.delta.text,
 							});
-						} else if (event.type === 'message_delta') {
-							if (event.usage?.output_tokens) {
-								outputTokens = event.usage.output_tokens;
-							}
-							if (event.delta?.stop_reason) {
-								stopReason = event.delta.stop_reason;
-							}
-						} else if (event.type === 'message_start' && event.message?.usage) {
-							inputTokens = event.message.usage.input_tokens ?? 0;
 						}
-					} catch {
-						// Skip malformed JSON lines
+					} else if (event.type === 'message_delta') {
+						const msgDelta = event as AnthropicStreamEvent & { usage?: { output_tokens?: number }; delta?: { stop_reason?: string } };
+						if (msgDelta.usage?.output_tokens != null) {
+							outputTokens = msgDelta.usage.output_tokens;
+						}
+						if (msgDelta.delta?.stop_reason) {
+							stopReason = msgDelta.delta.stop_reason;
+						}
+					} else if (event.type === 'message_start') {
+						const msgStart = event as AnthropicStreamEvent & { message?: { usage?: { input_tokens?: number } } };
+						if (msgStart.message?.usage?.input_tokens != null) {
+							inputTokens = msgStart.message.usage.input_tokens;
+						}
 					}
-				}
+				},
+				abortController.signal,
+			);
+		} catch (e) {
+			if (abortController.signal.aborted) {
+				stopReason = 'cancelled';
+			} else {
+				const errorText = e instanceof Error ? e.message : String(e);
+				this.logService.error(`[Nyrve] API error: ${errorText}`);
+				this._onDidReceiveStreamEvent.fire({ type: 'error', error: errorText });
+				throw e;
 			}
 		} finally {
+			cancelListener.dispose();
 			this._onDidReceiveStreamEvent.fire({ type: 'message_stop' });
 		}
 
 		return { content: fullContent, inputTokens, outputTokens, stopReason };
 	}
 
-	private async _handleJsonResponse(
-		response: Response,
+	private async _sendNonStreaming(
+		apiKey: string,
+		apiModelId: string,
+		request: NyrveAgentRequest,
+		maxTokens: number,
 	): Promise<Omit<NyrveAgentResponse, 'model'>> {
-		const json = await response.json();
-		const content = json.content?.map((block: { text?: string }) => block.text ?? '').join('') ?? '';
-		const inputTokens = json.usage?.input_tokens ?? 0;
-		const outputTokens = json.usage?.output_tokens ?? 0;
-		const stopReason = json.stop_reason ?? 'end_turn';
+		const apiMessages = request.messages.map(m => ({
+			role: m.role,
+			content: m.content,
+		}));
 
-		this._onDidReceiveStreamEvent.fire({ type: 'message_start' });
-		this._onDidReceiveStreamEvent.fire({ type: 'text_delta', text: content });
-		this._onDidReceiveStreamEvent.fire({ type: 'message_stop' });
+		try {
+			const message = await this.apiClient.createMessage(apiKey, {
+				model: apiModelId,
+				max_tokens: maxTokens,
+				messages: apiMessages,
+				system: request.systemPrompt,
+			});
 
-		return { content, inputTokens, outputTokens, stopReason };
+			const content = message.content
+				.filter(block => block.type === 'text')
+				.map(block => block.text ?? '')
+				.join('');
+			const inputTokens = message.usage?.input_tokens ?? 0;
+			const outputTokens = message.usage?.output_tokens ?? 0;
+			const stopReason = message.stop_reason ?? 'end_turn';
+
+			this._onDidReceiveStreamEvent.fire({ type: 'message_start' });
+			this._onDidReceiveStreamEvent.fire({ type: 'text_delta', text: content });
+			this._onDidReceiveStreamEvent.fire({ type: 'message_stop' });
+
+			return { content, inputTokens, outputTokens, stopReason };
+		} catch (e) {
+			const errorText = e instanceof Error ? e.message : String(e);
+			this.logService.error(`[Nyrve] API error: ${errorText}`);
+			this._onDidReceiveStreamEvent.fire({ type: 'error', error: errorText });
+			throw e;
+		}
 	}
 }
 

@@ -17,7 +17,7 @@ export const NYRVE_SCHEME = 'nyrve';
 export const NYRVE_DATA_DIR = '.nyrve';
 export const NYRVE_CONFIG_FILE = 'config.json';
 export const NYRVE_SETTINGS_PREFIX = 'nyrve';
-export const NYRVE_API_KEY_SECRET = 'nyrve.anthropicApiKey';
+export const NYRVE_API_KEY_SECRET = 'nyrve.anthropic.apiKey';
 
 // --- Settings Key Enums ---
 

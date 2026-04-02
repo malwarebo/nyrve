@@ -108,17 +108,11 @@ export class NyrvePlanGenerator extends Disposable implements INyrvePlanGenerato
 		await this.apiClient.stream(
 			apiKey,
 			{
-				method: 'POST',
-				path: '/v1/messages',
-				body: {
-					model: apiModelId,
-					max_tokens: 4096,
-					system: PLAN_SYSTEM_PROMPT,
-					messages: [{ role: 'user', content: userPrompt }],
-					stream: true,
-					temperature: 0.2,
-				},
-				stream: true,
+				model: apiModelId,
+				max_tokens: 4096,
+				system: PLAN_SYSTEM_PROMPT,
+				messages: [{ role: 'user', content: userPrompt }],
+				temperature: 0.2,
 			},
 			(event: AnthropicStreamEvent) => {
 				if (event.type === 'content_block_delta') {
@@ -128,12 +122,12 @@ export class NyrvePlanGenerator extends Disposable implements INyrvePlanGenerato
 					}
 				} else if (event.type === 'message_delta') {
 					const msgDelta = event as AnthropicStreamEvent & { usage?: { output_tokens?: number } };
-					if (msgDelta.usage?.output_tokens) {
+					if (msgDelta.usage?.output_tokens != null) {
 						outputTokens = msgDelta.usage.output_tokens;
 					}
 				} else if (event.type === 'message_start') {
 					const msgStart = event as AnthropicStreamEvent & { message?: { usage?: { input_tokens?: number } } };
-					if (msgStart.message?.usage?.input_tokens) {
+					if (msgStart.message?.usage?.input_tokens != null) {
 						inputTokens = msgStart.message.usage.input_tokens;
 					}
 				}
@@ -178,17 +172,11 @@ Revise the plan based on the feedback. Output the complete revised plan as JSON.
 		await this.apiClient.stream(
 			apiKey,
 			{
-				method: 'POST',
-				path: '/v1/messages',
-				body: {
-					model: apiModelId,
-					max_tokens: 4096,
-					system: REVISE_SYSTEM_PROMPT,
-					messages: [{ role: 'user', content: userPrompt }],
-					stream: true,
-					temperature: 0.2,
-				},
-				stream: true,
+				model: apiModelId,
+				max_tokens: 4096,
+				system: REVISE_SYSTEM_PROMPT,
+				messages: [{ role: 'user', content: userPrompt }],
+				temperature: 0.2,
 			},
 			(event: AnthropicStreamEvent) => {
 				if (event.type === 'content_block_delta') {
@@ -198,12 +186,12 @@ Revise the plan based on the feedback. Output the complete revised plan as JSON.
 					}
 				} else if (event.type === 'message_delta') {
 					const msgDelta = event as AnthropicStreamEvent & { usage?: { output_tokens?: number } };
-					if (msgDelta.usage?.output_tokens) {
+					if (msgDelta.usage?.output_tokens != null) {
 						outputTokens = msgDelta.usage.output_tokens;
 					}
 				} else if (event.type === 'message_start') {
 					const msgStart = event as AnthropicStreamEvent & { message?: { usage?: { input_tokens?: number } } };
-					if (msgStart.message?.usage?.input_tokens) {
+					if (msgStart.message?.usage?.input_tokens != null) {
 						inputTokens = msgStart.message.usage.input_tokens;
 					}
 				}

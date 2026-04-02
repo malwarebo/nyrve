@@ -8,8 +8,8 @@ import { localize2 } from '../../../vs/nls.js';
 import { Action2, registerAction2 } from '../../../vs/platform/actions/common/actions.js';
 import type { ServicesAccessor } from '../../../vs/platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../vs/platform/log/common/log.js';
-import { IOpenerService } from '../../../vs/platform/opener/common/opener.js';
-import { URI } from '../../../vs/base/common/uri.js';
+import { IQuickInputService } from '../../../vs/platform/quickinput/common/quickInput.js';
+import { INotificationService, Severity } from '../../../vs/platform/notification/common/notification.js';
 import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../vs/workbench/common/contributions.js';
 import { INyrveAuthService } from '../../core/auth-service.js';
 
@@ -265,10 +265,47 @@ registerAction2(class SetupApiKeyAction extends Action2 {
 		});
 	}
 	async run(accessor: ServicesAccessor): Promise<void> {
-		const openerService = accessor.get(IOpenerService);
-		// For now, open the Anthropic console as a fallback.
-		// When the webview editor is fully wired, this will open the welcome tab.
-		await openerService.open(URI.parse('https://console.anthropic.com/'));
+		const quickInputService = accessor.get(IQuickInputService);
+		const authService = accessor.get(INyrveAuthService);
+		const notificationService = accessor.get(INotificationService);
+
+		const apiKey = await quickInputService.input({
+			placeHolder: 'sk-ant-...',
+			prompt: 'Enter your Anthropic API key',
+			password: true,
+			ignoreFocusLost: true,
+			validateInput: async (value) => {
+				if (!value) {
+					return 'API key is required';
+				}
+				if (!value.startsWith('sk-ant-')) {
+					return 'API key must start with "sk-ant-"';
+				}
+				if (value.length < 40) {
+					return 'API key is too short';
+				}
+				return undefined;
+			},
+		});
+
+		if (!apiKey) {
+			return; // User cancelled
+		}
+
+		try {
+			const result = await authService.validateApiKey(apiKey);
+			if (result.valid) {
+				await authService.storeApiKey(apiKey);
+				notificationService.info('Nyrve: API key saved and validated successfully.');
+			} else {
+				notificationService.notify({
+					severity: Severity.Error,
+					message: `Nyrve: ${result.message ?? 'API key validation failed.'}`,
+				});
+			}
+		} catch (e) {
+			notificationService.error(`Nyrve: Failed to validate API key: ${e instanceof Error ? e.message : String(e)}`);
+		}
 	}
 });
 

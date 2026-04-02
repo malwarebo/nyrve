@@ -16,6 +16,7 @@ import {
 	NyrveStreamEvent,
 } from "../agent-engine.js";
 import { INyrveModelRouter } from "../model-router.js";
+import { INyrveEditorBridge, EditorState } from "../../context/editor-bridge.js";
 import {
 	INyrveVerificationEngine,
 	VerificationProgress,
@@ -71,11 +72,31 @@ suite("Nyrve: AgentService", () => {
 					verifyProgressEmitter.event;
 			})();
 
+		const editorBridge = new (class extends mock<INyrveEditorBridge>() {
+			override getEditorState(): EditorState {
+				return {
+					activeFilePath: undefined,
+					activeFileLanguage: undefined,
+					cursorPosition: undefined,
+					selection: undefined,
+					selectedText: undefined,
+					openTabs: [],
+					diagnostics: [],
+					gitBranch: undefined,
+					projectRoot: '/test',
+				};
+			}
+			override getActiveFileContent(): string | undefined {
+				return undefined;
+			}
+		})();
+
 		return store.add(
 			new NyrveAgentService(
 				agentEngine,
 				modelRouter,
 				verificationEngine,
+				editorBridge,
 				new NullLogService(),
 			),
 		);

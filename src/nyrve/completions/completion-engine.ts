@@ -179,19 +179,12 @@ export class NyrveCompletionEngine extends Disposable implements INyrveCompletio
 			await this.apiClient.stream(
 				apiKey,
 				{
-					method: 'POST',
-					path: '/v1/messages',
-					body: {
-						model: apiModelId,
-						max_tokens: 256,
-						system: prompt.systemPrompt,
-						messages: [{ role: 'user', content: prompt.userPrompt }],
-						stream: true,
-						temperature: 0,
-						stop_sequences: ['\n\n\n', '```'],
-					},
-					stream: true,
-					signal: abort.signal,
+					model: apiModelId,
+					max_tokens: 256,
+					system: prompt.systemPrompt,
+					messages: [{ role: 'user', content: prompt.userPrompt }],
+					temperature: 0,
+					stop_sequences: ['\n\n\n', '```'],
 				},
 				(event: AnthropicStreamEvent) => {
 					if (abort.signal.aborted) {
@@ -209,16 +202,17 @@ export class NyrveCompletionEngine extends Disposable implements INyrveCompletio
 						}
 					} else if (event.type === 'message_delta') {
 						const msgDelta = event as AnthropicStreamEvent & { usage?: { output_tokens?: number } };
-						if (msgDelta.usage?.output_tokens) {
+						if (msgDelta.usage?.output_tokens != null) {
 							outputTokens = msgDelta.usage.output_tokens;
 						}
 					} else if (event.type === 'message_start') {
 						const msgStart = event as AnthropicStreamEvent & { message?: { usage?: { input_tokens?: number } } };
-						if (msgStart.message?.usage?.input_tokens) {
+						if (msgStart.message?.usage?.input_tokens != null) {
 							inputTokens = msgStart.message.usage.input_tokens;
 						}
 					}
 				},
+				abort.signal,
 			);
 		} catch (e) {
 			// Aborted or network error — not an actual failure for the user
@@ -228,7 +222,7 @@ export class NyrveCompletionEngine extends Disposable implements INyrveCompletio
 			}
 
 			// Rate limit — tell the trigger service
-			if (e instanceof Error && e.message.includes('429')) {
+			if (this.apiClient.isRateLimitError(e)) {
 				this.trigger.recordRateLimit();
 				// Clear rate limit after 30 seconds
 				setTimeout(() => this.trigger.clearRateLimit(), 30_000);

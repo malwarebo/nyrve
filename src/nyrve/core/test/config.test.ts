@@ -95,7 +95,7 @@ suite("Nyrve: ConfigService", () => {
 	test("getApiKey returns stored key", async () => {
 		const service = createConfigService(
 			{},
-			{ "nyrve.anthropicApiKey": "sk-ant-test123" },
+			{ "nyrve.anthropic.apiKey": "sk-ant-test123" },
 		);
 		const key = await service.getApiKey();
 		assert.strictEqual(key, "sk-ant-test123");
@@ -117,7 +117,7 @@ suite("Nyrve: ConfigService", () => {
 	test("clearApiKey removes key", async () => {
 		const service = createConfigService(
 			{},
-			{ "nyrve.anthropicApiKey": "sk-ant-test" },
+			{ "nyrve.anthropic.apiKey": "sk-ant-test" },
 		);
 		await service.clearApiKey();
 		const key = await service.getApiKey();
@@ -127,7 +127,7 @@ suite("Nyrve: ConfigService", () => {
 	test("hasApiKey returns true when key exists", async () => {
 		const service = createConfigService(
 			{},
-			{ "nyrve.anthropicApiKey": "sk-ant-test" },
+			{ "nyrve.anthropic.apiKey": "sk-ant-test" },
 		);
 		assert.strictEqual(await service.hasApiKey(), true);
 	});

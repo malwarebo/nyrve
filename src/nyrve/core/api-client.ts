@@ -7,30 +7,33 @@ import { Disposable } from '../../vs/base/common/lifecycle.js';
 import { createDecorator } from '../../vs/platform/instantiation/common/instantiation.js';
 import { InstantiationType, registerSingleton } from '../../vs/platform/instantiation/common/extensions.js';
 import { ILogService } from '../../vs/platform/log/common/log.js';
+import { AppResourcePath, FileAccess, nodeModulesPath } from '../../vs/base/common/network.js';
+import type AnthropicSDK from '@anthropic-ai/sdk';
 
 // --- Constants ---
 
-const ANTHROPIC_API_BASE = 'https://api.anthropic.com';
-const ANTHROPIC_API_VERSION = '2024-10-22';
-const USER_AGENT = 'Nyrve-IDE/1.0';
-
 const MAX_RETRIES = 6;
-const INITIAL_RETRY_DELAY_MS = 1000;
-const MAX_RETRY_DELAY_MS = 30000;
 
 // --- Types ---
 
-export interface AnthropicRequestOptions {
-	readonly method: 'GET' | 'POST';
-	readonly path: string;
-	readonly body?: unknown;
-	readonly stream?: boolean;
-	readonly signal?: AbortSignal;
+export interface AnthropicMessageParams {
+	readonly model: string;
+	readonly max_tokens: number;
+	readonly messages: ReadonlyArray<{ readonly role: 'user' | 'assistant'; readonly content: string | ReadonlyArray<unknown> }>;
+	readonly system?: string;
+	readonly temperature?: number;
+	readonly stop_sequences?: readonly string[];
 }
 
 export interface AnthropicStreamEvent {
 	readonly type: string;
 	readonly [key: string]: unknown;
+}
+
+export interface AnthropicMessageResponse {
+	readonly content: ReadonlyArray<{ readonly type: string; readonly text?: string }>;
+	readonly usage: { readonly input_tokens: number; readonly output_tokens: number };
+	readonly stop_reason: string | null;
 }
 
 // --- Service Interface ---
@@ -40,17 +43,29 @@ export const INyrveApiClient = createDecorator<INyrveApiClient>('nyrveApiClient'
 export interface INyrveApiClient {
 	readonly _serviceBrand: undefined;
 
-	/** Make a non-streaming API request. */
-	request<T>(apiKey: string, options: AnthropicRequestOptions): Promise<T>;
+	/**
+	 * Make a streaming API request for messages, yielding raw SSE events.
+	 *
+	 * When `signal` is aborted mid-stream, the method returns normally (no throw).
+	 * When `signal` is aborted before the stream connects, the SDK throws an abort error.
+	 * Callers should check `signal.aborted` in catch blocks to distinguish cancellation from errors.
+	 */
+	stream(apiKey: string, params: AnthropicMessageParams, onEvent: (event: AnthropicStreamEvent) => void, signal?: AbortSignal): Promise<void>;
 
-	/** Make a streaming API request, yielding SSE events. */
-	stream(apiKey: string, options: AnthropicRequestOptions, onEvent: (event: AnthropicStreamEvent) => void): Promise<void>;
+	/** Make a non-streaming messages API request. */
+	createMessage(apiKey: string, params: AnthropicMessageParams): Promise<AnthropicMessageResponse>;
 
 	/** Quick validation: send a minimal Haiku request to check key validity. */
 	validateKey(apiKey: string): Promise<{ valid: boolean; error?: string }>;
 
 	/** Fetch available models from the API. */
 	listModels(apiKey: string): Promise<AnthropicModel[]>;
+
+	/** Evict cached SDK client instances (e.g. after API key change). */
+	clearClientCache(): void;
+
+	/** Check if an error is a rate limit error from the Anthropic API. */
+	isRateLimitError(error: unknown): boolean;
 }
 
 export interface AnthropicModel {
@@ -61,8 +76,31 @@ export interface AnthropicModel {
 
 // --- Service Implementation ---
 
+type AnthropicClient = InstanceType<typeof AnthropicSDK>;
+
+/**
+ * Lazily-loaded Anthropic SDK module.
+ *
+ * The SDK cannot be loaded via bare specifier (`import '@anthropic-ai/sdk'`) in
+ * the Electron renderer because it uses browser ESM resolution. Instead we
+ * construct a `vscode-file://` URI to the SDK's ESM entry point using VS Code's
+ * `FileAccess.asBrowserUri`, then `import()` that full URL. The SDK's internal
+ * imports are all relative, so they resolve correctly from that base URL.
+ */
+let _sdkModule: typeof import('@anthropic-ai/sdk') | undefined;
+async function loadSDK(): Promise<typeof import('@anthropic-ai/sdk')> {
+	if (!_sdkModule) {
+		const sdkPath: AppResourcePath = `${nodeModulesPath}/@anthropic-ai/sdk/index.mjs`;
+		const sdkUrl = FileAccess.asBrowserUri(sdkPath).toString(true);
+		_sdkModule = await import(/* @vite-ignore */ sdkUrl) as typeof import('@anthropic-ai/sdk');
+	}
+	return _sdkModule;
+}
+
 export class NyrveApiClient extends Disposable implements INyrveApiClient {
 	declare readonly _serviceBrand: undefined;
+
+	private readonly _clientCache = new Map<string, AnthropicClient>();
 
 	constructor(
 		@ILogService private readonly logService: ILogService,
@@ -70,185 +108,158 @@ export class NyrveApiClient extends Disposable implements INyrveApiClient {
 		super();
 	}
 
-	async request<T>(apiKey: string, options: AnthropicRequestOptions): Promise<T> {
-		const response = await this._fetchWithRetry(apiKey, options);
-		return response.json() as Promise<T>;
+	private async _getClient(apiKey: string): Promise<AnthropicClient> {
+		let client = this._clientCache.get(apiKey);
+		if (!client) {
+			const { default: Anthropic } = await loadSDK();
+			client = new Anthropic({
+				apiKey,
+				maxRetries: MAX_RETRIES,
+				dangerouslyAllowBrowser: true, // Safe: Electron renderer, key from OS keychain
+			});
+			this._clientCache.set(apiKey, client);
+		}
+		return client;
 	}
 
-	async stream(apiKey: string, options: AnthropicRequestOptions, onEvent: (event: AnthropicStreamEvent) => void): Promise<void> {
-		const response = await this._fetchWithRetry(apiKey, {
-			...options,
+	clearClientCache(): void {
+		this._clientCache.clear();
+	}
+
+	isRateLimitError(error: unknown): boolean {
+		// Check by error name/status since the SDK class may not be loaded yet
+		if (error && typeof error === 'object' && 'status' in error) {
+			return (error as { status: number }).status === 429;
+		}
+		return false;
+	}
+
+	async stream(apiKey: string, params: AnthropicMessageParams, onEvent: (event: AnthropicStreamEvent) => void, signal?: AbortSignal): Promise<void> {
+		const client = await this._getClient(apiKey);
+
+		const sdkParams: AnthropicSDK.MessageCreateParamsStreaming = {
+			model: params.model,
+			max_tokens: params.max_tokens,
+			messages: params.messages as AnthropicSDK.MessageParam[],
 			stream: true,
-		});
-
-		const reader = response.body?.getReader();
-		if (!reader) {
-			throw new Error('No response body for streaming');
+		};
+		if (params.system !== undefined) {
+			sdkParams.system = params.system;
+		}
+		if (params.temperature !== undefined) {
+			sdkParams.temperature = params.temperature;
+		}
+		if (params.stop_sequences !== undefined) {
+			sdkParams.stop_sequences = params.stop_sequences as string[];
 		}
 
-		const decoder = new TextDecoder();
-		let buffer = '';
+		const response = await client.messages.create(sdkParams, { signal });
 
-		try {
-			while (true) {
-				const { done, value } = await reader.read();
-				if (done) {
-					break;
-				}
-
-				buffer += decoder.decode(value, { stream: true });
-
-				// Parse SSE events from buffer
-				const lines = buffer.split('\n');
-				buffer = lines.pop() ?? ''; // Keep incomplete last line
-
-				let currentEventType = '';
-				for (const line of lines) {
-					if (line.startsWith('event: ')) {
-						currentEventType = line.slice(7).trim();
-					} else if (line.startsWith('data: ')) {
-						const data = line.slice(6);
-						if (data === '[DONE]') {
-							return;
-						}
-						try {
-							const parsed = JSON.parse(data);
-							if (currentEventType) {
-								parsed.type = currentEventType;
-							}
-							onEvent(parsed);
-						} catch {
-							this.logService.trace(`[Nyrve] SSE parse error: ${data}`);
-						}
-					}
-				}
+		// The response is a Stream<RawMessageStreamEvent> (async iterable)
+		const stream = response as AsyncIterable<AnthropicSDK.RawMessageStreamEvent>;
+		for await (const event of stream) {
+			if (signal?.aborted) {
+				break;
 			}
-		} finally {
-			reader.releaseLock();
+			onEvent(event as unknown as AnthropicStreamEvent);
 		}
+	}
+
+	async createMessage(apiKey: string, params: AnthropicMessageParams): Promise<AnthropicMessageResponse> {
+		const client = await this._getClient(apiKey);
+
+		const sdkParams: AnthropicSDK.MessageCreateParamsNonStreaming = {
+			model: params.model,
+			max_tokens: params.max_tokens,
+			messages: params.messages as AnthropicSDK.MessageParam[],
+		};
+		if (params.system !== undefined) {
+			sdkParams.system = params.system;
+		}
+		if (params.temperature !== undefined) {
+			sdkParams.temperature = params.temperature;
+		}
+		if (params.stop_sequences !== undefined) {
+			sdkParams.stop_sequences = params.stop_sequences as string[];
+		}
+
+		const message = await client.messages.create(sdkParams);
+		return {
+			content: message.content.map(block => ({
+				type: block.type,
+				text: 'text' in block ? block.text : undefined,
+			})),
+			usage: message.usage,
+			stop_reason: message.stop_reason,
+		};
 	}
 
 	async validateKey(apiKey: string): Promise<{ valid: boolean; error?: string }> {
 		try {
-			const response = await fetch(`${ANTHROPIC_API_BASE}/v1/messages`, {
-				method: 'POST',
-				headers: this._buildHeaders(apiKey),
-				body: JSON.stringify({
-					model: 'claude-haiku-4-5-20251001',
-					max_tokens: 1,
-					messages: [{ role: 'user', content: 'hi' }],
-				}),
+			const { default: Anthropic } = await loadSDK();
+			// Use a fresh client for validation (don't cache a potentially-bad key)
+			const client = new Anthropic({
+				apiKey,
+				maxRetries: 0,
+				dangerouslyAllowBrowser: true, // Safe: Electron renderer, key from OS keychain
 			});
-
-			if (response.ok) {
-				return { valid: true };
-			}
-
-			switch (response.status) {
-				case 401:
-					return { valid: false, error: 'invalid_key' };
-				case 403:
-					return { valid: false, error: 'no_permission' };
-				case 429:
-					return { valid: false, error: 'rate_limited' };
-				default:
-					return { valid: false, error: `http_${response.status}` };
-			}
+			await client.messages.create({
+				model: 'claude-haiku-4-5-20251001',
+				max_tokens: 1,
+				messages: [{ role: 'user', content: 'hi' }],
+			});
+			return { valid: true };
 		} catch (e) {
+			return this._classifyValidationError(e);
+		}
+	}
+
+	private async _classifyValidationError(e: unknown): Promise<{ valid: boolean; error: string }> {
+		this.logService.error(`[Nyrve] API validation error:`, e);
+		const { default: Anthropic } = await loadSDK();
+		if (e instanceof Anthropic.AuthenticationError) {
+			return { valid: false, error: 'invalid_key' };
+		}
+		if (e instanceof Anthropic.PermissionDeniedError) {
+			return { valid: false, error: 'no_permission' };
+		}
+		if (e instanceof Anthropic.RateLimitError) {
+			return { valid: false, error: 'rate_limited' };
+		}
+		if (e instanceof Anthropic.APIConnectionError) {
 			return { valid: false, error: 'network_error' };
 		}
+		if (e instanceof Anthropic.APIError) {
+			return { valid: false, error: `http_${e.status}` };
+		}
+		// Log unrecognized errors for debugging
+		const errorMsg = e instanceof Error ? e.message : String(e);
+		this.logService.error(`[Nyrve] Unrecognized validation error: ${errorMsg}`);
+		return { valid: false, error: 'network_error' };
 	}
 
 	async listModels(apiKey: string): Promise<AnthropicModel[]> {
 		try {
-			const response = await fetch(`${ANTHROPIC_API_BASE}/v1/models`, {
-				method: 'GET',
-				headers: this._buildHeaders(apiKey),
-			});
-
-			if (!response.ok) {
-				this.logService.warn(`[Nyrve] Failed to list models: ${response.status}`);
-				return [];
+			const client = await this._getClient(apiKey);
+			const page = await client.models.list();
+			const models: AnthropicModel[] = [];
+			for (const model of page.data) {
+				models.push({
+					id: model.id,
+					displayName: model.display_name,
+					createdAt: model.created_at,
+				});
 			}
-
-			const data = await response.json() as { data: Array<{ id: string; display_name: string; created_at: string }> };
-			return data.data.map(m => ({
-				id: m.id,
-				displayName: m.display_name,
-				createdAt: m.created_at,
-			}));
+			return models;
 		} catch (e) {
 			this.logService.warn(`[Nyrve] Failed to fetch models: ${e}`);
 			return [];
 		}
 	}
 
-	private async _fetchWithRetry(apiKey: string, options: AnthropicRequestOptions): Promise<Response> {
-		const headers = this._buildHeaders(apiKey);
-		if (options.stream) {
-			headers['Accept'] = 'text/event-stream';
-		}
-
-		const url = `${ANTHROPIC_API_BASE}${options.path}`;
-		let lastError: Error | undefined;
-
-		for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-			try {
-				const response = await fetch(url, {
-					method: options.method,
-					headers,
-					body: options.body ? JSON.stringify(options.body) : undefined,
-					signal: options.signal,
-				});
-
-				if (response.ok) {
-					return response;
-				}
-
-				// Only retry on 429 (rate limit) and 529 (overloaded)
-				if (response.status === 429 || response.status === 529) {
-					if (attempt < MAX_RETRIES) {
-						const retryAfter = response.headers.get('retry-after');
-						const delayMs = retryAfter
-							? parseInt(retryAfter, 10) * 1000
-							: Math.min(INITIAL_RETRY_DELAY_MS * Math.pow(2, attempt), MAX_RETRY_DELAY_MS);
-
-						this.logService.trace(`[Nyrve] API rate limited (${response.status}), retrying in ${delayMs}ms (attempt ${attempt + 1}/${MAX_RETRIES})`);
-						await this._sleep(delayMs);
-						continue;
-					}
-				}
-
-				// Non-retryable error
-				const errorBody = await response.text().catch(() => '');
-				throw new Error(`Anthropic API error ${response.status}: ${errorBody}`);
-			} catch (e) {
-				if (e instanceof Error && e.name === 'AbortError') {
-					throw e; // Don't retry cancellations
-				}
-				lastError = e instanceof Error ? e : new Error(String(e));
-				if (attempt < MAX_RETRIES) {
-					const delayMs = Math.min(INITIAL_RETRY_DELAY_MS * Math.pow(2, attempt), MAX_RETRY_DELAY_MS);
-					this.logService.trace(`[Nyrve] API request failed, retrying in ${delayMs}ms: ${lastError.message}`);
-					await this._sleep(delayMs);
-				}
-			}
-		}
-
-		throw lastError ?? new Error('Max retries exceeded');
-	}
-
-	private _buildHeaders(apiKey: string): Record<string, string> {
-		return {
-			'x-api-key': apiKey,
-			'anthropic-version': ANTHROPIC_API_VERSION,
-			'content-type': 'application/json',
-			'user-agent': USER_AGENT,
-		};
-	}
-
-	private _sleep(ms: number): Promise<void> {
-		return new Promise(resolve => setTimeout(resolve, ms));
+	override dispose(): void {
+		this._clientCache.clear();
+		super.dispose();
 	}
 }
 
