@@ -172,6 +172,13 @@ export class NyrveAgentViewPane extends ViewPane {
 				this.commandService.executeCommand("nyrve.openSettings");
 			}),
 		);
+		this._register(
+			this.panelHeader.onDidClickNewChat(() => {
+				this.agentService.newConversation();
+				this.messageRenderer.clear();
+				this._updateWelcomeVisibility();
+			}),
+		);
 
 		// --- Content area (welcome state + messages) ---
 		this.contentArea = $("div.nyrve-content-area");

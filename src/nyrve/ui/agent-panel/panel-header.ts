@@ -48,6 +48,9 @@ export class NyrvePanelHeader extends Disposable {
 	private readonly _onDidChangeModel = this._register(new Emitter<NyrveModelId>());
 	readonly onDidChangeModel: Event<NyrveModelId> = this._onDidChangeModel.event;
 
+	private readonly _onDidClickNewChat = this._register(new Emitter<void>());
+	readonly onDidClickNewChat: Event<void> = this._onDidClickNewChat.event;
+
 	private readonly _onDidClickMemory = this._register(new Emitter<void>());
 	readonly onDidClickMemory: Event<void> = this._onDidClickMemory.event;
 
@@ -105,6 +108,8 @@ export class NyrvePanelHeader extends Disposable {
 		this._modelButton.addEventListener('click', () => this._toggleModelDropdown());
 		rightGroup.appendChild(this._modelButton);
 
+		// New Chat icon
+		rightGroup.appendChild(this._createIconButton('\u{1F4DD}', localize('nyrve.header.newChat', "New Chat"), () => this._onDidClickNewChat.fire()));
 		// Memory icon
 		rightGroup.appendChild(this._createIconButton('\u{1F9E0}', localize('nyrve.header.memory', "Memory Browser"), () => this._onDidClickMemory.fire()));
 		// Settings icon

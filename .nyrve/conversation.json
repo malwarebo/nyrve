@@ -1,0 +1,21 @@
+{
+  "id": "nyrve-1775134125609-2o8rspz",
+  "createdAt": 1775134125609,
+  "messages": [
+    {
+      "role": "user",
+      "content": "what does this project do?",
+      "timestamp": 1775134795902
+    },
+    {
+      "role": "assistant",
+      "content": "Nyrve is a **VS Code fork with Claude AI deeply integrated into the editor** — not as an extension, but as a core part of the editor itself.\n\n## Key capabilities:\n\n1. **AI Agent with Full Editor Access** — Claude runs inside the editor with access to files, terminal, and git. It can read/write files, execute commands, and create commits, with configurable confirmation levels (cautious/balanced/autonomous).\n\n2. **Self-Verifying Code Changes** — The standout feature: when the agent modifies code, it automatically runs type checking, tests, coverage analysis, and import validation **before** showing you the diff. If something breaks, it enters a **self-healing loop** (up to 3 attempts) to fix its own mistakes.\n\n3. **Project DNA** — On first open, it scans your codebase, config files, and git history to build a structured profile (tech stack, architecture, patterns, conventions, hotspots). This context is fed to the agent on every request so it codes in your project's style. The file you have open (`dna-compressor.ts`) compresses this DNA into a ~1-2K token summary for system prompts.\n\n4. **Codebase Indexing** — A local embedding index built in Rust for fast symbol/file search.\n\n5. **Background Monitoring** — Watches code as you work, surfacing bugs, security issues, and refactoring opportunities via Claude Haiku.\n\n6. **Inline Completions** — Ghost-text completions powered by Claude Haiku with type-check validation.\n\n7. **Task Queue, Plan Mode, Diff Review** — Queue multiple tasks, review step-by-step plans before execution, and accept/reject agent changes per-hunk.\n\n8. **Extension API** — Third-party extensions can interact with the agent, index, memory, and task systems.\n\nIt uses the **Anthropic API directly** (bring your own key, no proxy/backend), routing tasks to the appropriate model: Haiku for speed, Sonnet for general work, Opus for complex reasoning.",
+      "timestamp": 1775134812623,
+      "model": "claude-opus",
+      "tokenUsage": {
+        "input": 74038,
+        "output": 471
+      }
+    }
+  ]
+}

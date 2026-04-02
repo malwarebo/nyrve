@@ -17,6 +17,7 @@ import {
 } from "../agent-engine.js";
 import { INyrveModelRouter } from "../model-router.js";
 import { INyrveEditorBridge, EditorState } from "../../context/editor-bridge.js";
+import { IFileService } from "../../../vs/platform/files/common/files.js";
 import {
 	INyrveVerificationEngine,
 	VerificationProgress,
@@ -91,12 +92,19 @@ suite("Nyrve: AgentService", () => {
 			}
 		})();
 
+		const fileService = new (class extends mock<IFileService>() {
+			override async readFile(): Promise<any> {
+				throw new Error('not found');
+			}
+		})();
+
 		return store.add(
 			new NyrveAgentService(
 				agentEngine,
 				modelRouter,
 				verificationEngine,
 				editorBridge,
+				fileService,
 				new NullLogService(),
 			),
 		);

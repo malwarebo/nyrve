@@ -137,6 +137,9 @@ export class NyrveAgentService extends Disposable implements INyrveAgentService 
 		this._register(this.verificationEngine.onDidProgress(p => {
 			this._onDidVerificationProgress.fire(p);
 		}));
+
+		// Load previous conversation from disk
+		this._loadConversation();
 	}
 
 	get state(): NyrveAgentState {
@@ -188,6 +191,9 @@ export class NyrveAgentService extends Disposable implements INyrveAgentService 
 			this.messages.push(assistantMessage);
 			this._onDidAddMessage.fire(assistantMessage);
 
+			// Persist conversation to disk
+			this._saveConversation();
+
 			this._setState(NyrveAgentState.Idle);
 			return response;
 		} catch (e) {
@@ -208,6 +214,13 @@ export class NyrveAgentService extends Disposable implements INyrveAgentService 
 	newConversation(): void {
 		this.messages.length = 0;
 		this._setState(NyrveAgentState.Idle);
+
+		// Delete saved conversation file
+		const uri = this._getConversationUri();
+		if (uri) {
+			this.fileService.del(uri).catch(() => { /* ignore */ });
+		}
+
 		this.logService.info('[Nyrve] New conversation started');
 	}
 
@@ -250,7 +263,9 @@ export class NyrveAgentService extends Disposable implements INyrveAgentService 
 	private async _buildSystemPrompt(): Promise<string> {
 		const parts: string[] = [
 			'You are Nyrve, an AI coding assistant built into the IDE.',
-			'You have full awareness of the user\'s editor state, open files, and project context.',
+			'You already have the full contents of all source files in the workspace loaded below.',
+			'NEVER ask the user to open, share, or point you to files — you already have them all.',
+			'Answer questions directly using the source code provided.',
 			'Be concise, helpful, and produce high-quality code.',
 			'When making code changes, be precise about file paths and line numbers.',
 		];
@@ -263,9 +278,12 @@ export class NyrveAgentService extends Disposable implements INyrveAgentService 
 			parts.push('## Workspace');
 			parts.push(`Project root: ${state.projectRoot}`);
 
-			// Scan workspace file tree
+			// Determine source directories to scan
+			const sourceDirs = await this._detectSourceDirs(state.projectRoot);
+
+			// Scan workspace file tree (top-level only for huge repos)
 			try {
-				const tree = await this._scanWorkspaceTree(state.projectRoot);
+				const tree = await this._scanWorkspaceTree(state.projectRoot, 300);
 				if (tree) {
 					parts.push('');
 					parts.push('## Project File Tree');
@@ -285,6 +303,21 @@ export class NyrveAgentService extends Disposable implements INyrveAgentService 
 				}
 			} catch (e) {
 				this.logService.trace('[Nyrve] Failed to read project files:', e);
+			}
+
+			// Read source file contents from detected source directories
+			for (const srcDir of sourceDirs) {
+				try {
+					const sourceContents = await this._readAllSourceFiles(srcDir);
+					if (sourceContents) {
+						parts.push('');
+						parts.push(`## Source Files: ${srcDir.replace(state.projectRoot + '/', '')}`);
+						parts.push('You have full access to all source files below. Answer questions directly without asking the user to open files.');
+						parts.push(sourceContents);
+					}
+				} catch (e) {
+					this.logService.trace(`[Nyrve] Failed to read source files from ${srcDir}:`, e);
+				}
 			}
 		}
 
@@ -339,6 +372,42 @@ export class NyrveAgentService extends Disposable implements INyrveAgentService 
 	 * Recursively scan the workspace and return a file tree string.
 	 * Skips common non-source directories and binary files.
 	 */
+	/**
+	 * Detect the primary source directories in the project. For large monorepos
+	 * or forks (e.g. VS Code), returns only the user's custom source dirs rather
+	 * than the entire repo. For normal projects, returns the project root.
+	 */
+	private async _detectSourceDirs(projectRoot: string): Promise<string[]> {
+		const rootUri = URI.file(projectRoot);
+
+		// Check for Nyrve-specific source (VS Code fork)
+		try {
+			const nyrveDir = URI.joinPath(rootUri, 'src', 'nyrve');
+			const stat = await this.fileService.resolve(nyrveDir);
+			if (stat.isDirectory) {
+				return [nyrveDir.fsPath];
+			}
+		} catch { /* not a nyrve project */ }
+
+		// Check for common source directories
+		const candidates = ['src', 'lib', 'app', 'packages', 'components', 'pages', 'server', 'client'];
+		const found: string[] = [];
+
+		try {
+			const rootStat = await this.fileService.resolve(rootUri);
+			if (rootStat.children) {
+				for (const child of rootStat.children) {
+					if (child.isDirectory && candidates.includes(child.name)) {
+						found.push(child.resource.fsPath);
+					}
+				}
+			}
+		} catch { /* fallback */ }
+
+		// If no standard dirs found, use root (but _readAllSourceFiles has caps)
+		return found.length > 0 ? found : [projectRoot];
+	}
+
 	private async _scanWorkspaceTree(projectRoot: string, maxFiles = 500): Promise<string | undefined> {
 		const SKIP_DIRS = new Set([
 			'node_modules', '.git', '.hg', '.svn', 'dist', 'build', 'out', 'out-editor-src',
@@ -367,42 +436,43 @@ export class NyrveAgentService extends Disposable implements INyrveAgentService 
 				return;
 			}
 
-			let entries: [string, import('../../vs/platform/files/common/files.js').FileType][];
+			let stat: import('../../vs/platform/files/common/files.js').IFileStat;
 			try {
-				entries = await this.fileService.readdir(dirUri);
+				stat = await this.fileService.resolve(dirUri);
 			} catch {
 				return;
 			}
 
+			if (!stat.children) {
+				return;
+			}
+
 			// Sort: directories first, then files
-			entries.sort((a, b) => {
-				const aIsDir = a[1] === 2; // FileType.Directory
-				const bIsDir = b[1] === 2;
-				if (aIsDir !== bIsDir) {
-					return aIsDir ? -1 : 1;
+			const children = [...stat.children].sort((a, b) => {
+				if (a.isDirectory !== b.isDirectory) {
+					return a.isDirectory ? -1 : 1;
 				}
-				return a[0].localeCompare(b[0]);
+				return a.name.localeCompare(b.name);
 			});
 
-			for (const [name, fileType] of entries) {
+			for (const child of children) {
 				if (fileCount >= maxFiles) {
 					lines.push(`${prefix}... (truncated at ${maxFiles} files)`);
 					return;
 				}
 
+				const name = child.name;
+
 				if (name.startsWith('.') && name !== '.env.example') {
 					continue;
 				}
 
-				const isDir = fileType === 2; // FileType.Directory
-
-				if (isDir) {
+				if (child.isDirectory) {
 					if (SKIP_DIRS.has(name)) {
 						continue;
 					}
 					lines.push(`${prefix}${name}/`);
-					const childUri = URI.joinPath(dirUri, name);
-					await scan(childUri, prefix + '  ', depth + 1);
+					await scan(child.resource, prefix + '  ', depth + 1);
 				} else {
 					const ext = name.includes('.') ? '.' + name.split('.').pop()!.toLowerCase() : '';
 					if (SKIP_EXTENSIONS.has(ext)) {
@@ -473,6 +543,206 @@ export class NyrveAgentService extends Disposable implements INyrveAgentService 
 		}
 
 		return parts.length > 0 ? parts.join('\n\n') : undefined;
+	}
+
+	// --- Chat Persistence ---
+
+	private _getConversationUri(): URI | undefined {
+		const state = this.editorBridge.getEditorState();
+		if (!state.projectRoot) {
+			return undefined;
+		}
+		return URI.joinPath(URI.file(state.projectRoot), '.nyrve', 'conversation.json');
+	}
+
+	private _saveConversation(): void {
+		const uri = this._getConversationUri();
+		if (!uri) {
+			return;
+		}
+
+		const data = {
+			id: this.conversationId,
+			createdAt: this.conversationCreatedAt,
+			messages: this.messages,
+		};
+
+		const content = VSBuffer.fromString(JSON.stringify(data, null, 2));
+		this.fileService.writeFile(uri, content).catch(e => {
+			this.logService.trace('[Nyrve] Failed to save conversation:', e);
+		});
+	}
+
+	private _loadConversation(): void {
+		const uri = this._getConversationUri();
+		if (!uri) {
+			return;
+		}
+
+		this.fileService.readFile(uri).then(content => {
+			const text = VSBuffer.wrap(content.value.buffer).toString();
+			const data = JSON.parse(text) as {
+				id: string;
+				createdAt: number;
+				messages: NyrveMessage[];
+			};
+
+			// Only restore if there's at least one complete exchange (user + assistant)
+			const hasAssistantMessage = data.messages?.some(m => m.role === 'assistant');
+			if (!data.messages || data.messages.length === 0 || !hasAssistantMessage) {
+				// Stale/broken conversation — delete it
+				this.fileService.del(uri).catch(() => { /* ignore */ });
+				return;
+			}
+
+			// Restore messages into current conversation
+			this.messages.length = 0;
+			for (const msg of data.messages) {
+				this.messages.push(msg);
+			}
+			this.logService.info(`[Nyrve] Restored ${data.messages.length} messages from previous conversation`);
+
+			// Notify UI of restored messages
+			for (const msg of this.messages) {
+				this._onDidAddMessage.fire(msg);
+			}
+		}).catch(() => {
+			// No saved conversation — start fresh
+		});
+	}
+
+	/**
+	 * Recursively read all source files in the workspace and return their contents.
+	 * Respects the same skip rules as the tree scanner. Caps total output to stay
+	 * within reasonable context window limits.
+	 */
+	private async _readAllSourceFiles(projectRoot: string): Promise<string | undefined> {
+		const SOURCE_EXTENSIONS = new Set([
+			'.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs',
+			'.py', '.rb', '.go', '.rs', '.java', '.kt', '.kts',
+			'.c', '.cpp', '.h', '.hpp', '.cs',
+			'.swift', '.m', '.mm',
+			'.vue', '.svelte', '.astro',
+			'.json', '.yaml', '.yml', '.toml', '.ini', '.cfg',
+			'.md', '.txt', '.rst',
+			'.html', '.css', '.scss', '.less',
+			'.sql', '.graphql', '.gql',
+			'.sh', '.bash', '.zsh', '.fish',
+			'.dockerfile', '.env.example',
+			'.xml', '.plist',
+		]);
+
+		const SKIP_DIRS = new Set([
+			'node_modules', '.git', '.hg', '.svn', 'dist', 'build', 'out', 'out-editor-src',
+			'out-monaco-editor-core', '.next', '.nuxt', '__pycache__', '.pytest_cache',
+			'venv', '.venv', 'env', '.env', '.tox', 'coverage', '.nyc_output',
+			'.cache', '.parcel-cache', 'target', '.gradle', '.idea', '.vscode',
+			'.nyrve', '.claude', '.devcontainer', 'vendor',
+		]);
+
+		const maxTotalChars = 200_000; // ~50K tokens
+		const maxFileChars = 20_000; // Single file cap
+		const parts: string[] = [];
+		let totalChars = 0;
+		let filesRead = 0;
+		let filesSkipped = 0;
+
+		const scan = async (dirUri: URI, relativePath: string, depth: number): Promise<void> => {
+			if (depth > 6 || totalChars >= maxTotalChars) {
+				return;
+			}
+
+			let stat: import('../../vs/platform/files/common/files.js').IFileStat;
+			try {
+				stat = await this.fileService.resolve(dirUri);
+			} catch {
+				return;
+			}
+
+			if (!stat.children) {
+				return;
+			}
+
+			const children = [...stat.children].sort((a, b) => {
+				if (a.isDirectory !== b.isDirectory) {
+					return a.isDirectory ? -1 : 1;
+				}
+				return a.name.localeCompare(b.name);
+			});
+
+			for (const child of children) {
+				if (totalChars >= maxTotalChars) {
+					break;
+				}
+
+				const name = child.name;
+				const childRelPath = relativePath ? `${relativePath}/${name}` : name;
+
+				if (name.startsWith('.') && name !== '.env.example') {
+					continue;
+				}
+
+				if (child.isDirectory) {
+					if (SKIP_DIRS.has(name)) {
+						continue;
+					}
+					await scan(child.resource, childRelPath, depth + 1);
+				} else {
+					const ext = name.includes('.') ? '.' + name.split('.').pop()!.toLowerCase() : '';
+					const baseName = name.toLowerCase();
+
+					// Include files with known source extensions or known config names
+					const isSource = SOURCE_EXTENSIONS.has(ext);
+					const isConfig = baseName === 'makefile' || baseName === 'dockerfile' || baseName === 'gemfile' || baseName === 'rakefile';
+
+					if (!isSource && !isConfig) {
+						continue;
+					}
+
+					try {
+						const content = await this.fileService.readFile(child.resource);
+						const text = VSBuffer.wrap(content.value.buffer).toString();
+
+						if (text.length === 0) {
+							continue;
+						}
+
+						const remaining = maxTotalChars - totalChars;
+						if (remaining <= 100) {
+							filesSkipped++;
+							continue;
+						}
+
+						let fileText = text;
+						if (fileText.length > maxFileChars) {
+							fileText = fileText.slice(0, maxFileChars) + `\n... (truncated, ${text.length} total chars)`;
+						}
+						if (fileText.length > remaining) {
+							fileText = fileText.slice(0, remaining) + '\n... (truncated for context limit)';
+						}
+
+						parts.push(`### ${childRelPath}\n\`\`\`${ext.slice(1) || ''}\n${fileText}\n\`\`\``);
+						totalChars += fileText.length;
+						filesRead++;
+					} catch {
+						// File unreadable — skip
+					}
+				}
+			}
+		};
+
+		await scan(URI.file(projectRoot), '', 0);
+
+		if (parts.length === 0) {
+			return undefined;
+		}
+
+		if (filesSkipped > 0) {
+			parts.push(`\n(${filesSkipped} additional files not included due to context limit)`);
+		}
+
+		this.logService.info(`[Nyrve] Loaded ${filesRead} source files (${totalChars} chars) into agent context`);
+		return parts.join('\n\n');
 	}
 
 	private _generateId(): string {

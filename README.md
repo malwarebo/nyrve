@@ -11,7 +11,7 @@
 
 ---
 
-Nyrve (*built with the help of Claude Code itself*) is a VS Code fork with Claude baked directly into the editor. Not as an extension. Not as a sidebar chat. As a core part of how the editor works. The agent runs inside the editor with full access to your files, terminal, and git. Every change it makes is type-checked, tested, and verified before you see it.
+Nyrve (*built extensively with the help of Claude Code itself*) is a VS Code fork with Claude baked directly into the editor. Not as an extension. Not as a sidebar chat. As a core part of how the editor works. The agent runs inside the editor with full access to your files, terminal, and git. Every change it makes is type-checked, tested, and verified before you see it.
 
 ## What makes Nyrve different
 
