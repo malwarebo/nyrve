@@ -174,7 +174,7 @@
     "cookie": "^1.1.1",
     "debounce": "^3.0.0",
     "deemon": "^1.13.7",
-    "electron": "41.0.3",
+    "electron": "41.1.0",
     "eslint": "^9.36.0",
     "eslint-formatter-compact": "^9.0.1",
     "eslint-plugin-header": "3.1.1",
